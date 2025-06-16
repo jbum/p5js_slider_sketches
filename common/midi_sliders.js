@@ -5,6 +5,7 @@ let sliders = [];
 let buttons = [];
 let lastRefreshTime = 0;
 let animationFrameId = null;
+let midi_mappings_cookie_name = "midi_mappings"; // Global cookie for MIDI mappings
 
 class Button {
     constructor(x, y, width = 40, height = 40) {
@@ -194,72 +195,118 @@ function onMIDIFailure(msg) {
     console.error(`Failed to get MIDI access - ${msg}`);
 }
 
-function read_slider_values_from_cookie()
-{
-  let cookie_str = document.cookie;
-  let cookie_parts = cookie_str.split(';');
-  for (let part of cookie_parts) {
-    let [name, value] = part.trim().split('=');
-    if (name === cookie_name) {
-      try {
-        let data = JSON.parse(value);
-          console.log("cookie data", data);  
-        // Handle both old format (just values) and new format (values + controls)
-        if (Array.isArray(data)) {
-            // Old format
-            for (let i = 0; i < data.length && i < sliders.length; ++i) {
-                sliders[i].setValue(data[i]);
-                slider_hook(i, data[i]);
-            }
-        } else {
-            // New format with controls
-            for (let i = 0; i < data.values.length && i < sliders.length; ++i) {
-                sliders[i].setValue(data.values[i]);
-                sliders[i].setControlNumber(data.controls[i]);
-                slider_hook(i, data.values[i]);
-            }
-            // Load button notes and states if available
-            if (data.buttonNotes) {
-                for (let i = 0; i < buttons.length; ++i) {
-                    // Set note number if available, otherwise keep default
-                    if (i < data.buttonNotes.length) {
-                        buttons[i].setNoteNumber(data.buttonNotes[i]);
-                    }
-                    // Set button state if available, otherwise keep default (false)
-                    if (data.buttonStates && i < data.buttonStates.length) {
-                        buttons[i].value = data.buttonStates[i];
-                        if (buttons[i].value) {
-                            button_hook(i, 127);
-                        }
-                    }
-                }
-            }
+// Helper function to get cookie by name
+function getCookie(name) {
+  const cookieStr = document.cookie;
+  const cookieParts = cookieStr.split(';');
+  for (let part of cookieParts) {
+    const [cookieName, cookieValue] = part.trim().split('=');
+    if (cookieName === name) {
+      return cookieValue;
+    }
+  }
+  return null;
+}
+
+// Read both cookies: local values and global MIDI mappings
+function read_slider_values_from_cookie() {
+  // First try to read MIDI mappings (global)
+  const mappingsCookieValue = getCookie(midi_mappings_cookie_name);
+  if (mappingsCookieValue) {
+    try {
+      const mappingsData = JSON.parse(mappingsCookieValue);
+      console.log("MIDI mappings cookie data", mappingsData);
+      
+      // Apply MIDI control mappings
+      if (mappingsData.controls && mappingsData.controls.length) {
+        for (let i = 0; i < mappingsData.controls.length && i < sliders.length; ++i) {
+          sliders[i].setControlNumber(mappingsData.controls[i]);
         }
-      } catch (e) {
-        console.error('Error parsing cookie value:', e);
       }
-      break;
+      
+      // Apply button note mappings
+      if (mappingsData.buttonNotes && mappingsData.buttonNotes.length) {
+        for (let i = 0; i < mappingsData.buttonNotes.length && i < buttons.length; ++i) {
+          buttons[i].setNoteNumber(mappingsData.buttonNotes[i]);
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing MIDI mappings cookie:', e);
+    }
+  }
+  
+  // Then read local project values
+  const valuesCookieValue = getCookie(cookie_name);
+  if (valuesCookieValue) {
+    try {
+      const valuesData = JSON.parse(valuesCookieValue);
+      console.log("Values cookie data", valuesData);
+      
+      // Handle both old format (just values) and new format (values + controls)
+      if (Array.isArray(valuesData)) {
+        // Old format - just an array of values
+        for (let i = 0; i < valuesData.length && i < sliders.length; ++i) {
+          sliders[i].setValue(valuesData[i]);
+          slider_hook(i, valuesData[i]);
+        }
+      } else {
+        // New format with separate fields
+        if (valuesData.values && valuesData.values.length) {
+          for (let i = 0; i < valuesData.values.length && i < sliders.length; ++i) {
+            sliders[i].setValue(valuesData.values[i]);
+            slider_hook(i, valuesData.values[i]);
+          }
+        }
+        
+        // Load button states if available (only from local cookie)
+        if (valuesData.buttonStates && valuesData.buttonStates.length) {
+          for (let i = 0; i < valuesData.buttonStates.length && i < buttons.length; ++i) {
+            buttons[i].value = valuesData.buttonStates[i];
+            if (buttons[i].value) {
+              button_hook(i, 127);
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error parsing values cookie:', e);
     }
   }
 }
 
-
-function save_slider_values_to_cookie()
-{
-  let data = {
+// Save slider and button values to the local cookie
+function save_values_to_cookie() {
+  const data = {
     values: sliders.map(slider => slider.value),
-    controls: sliders.map(slider => slider.controlNumber),
-    buttonNotes: buttons.map(button => button.noteNumber),
     buttonStates: buttons.map(button => button.value)
   };
-  let values_str = JSON.stringify(data);
+  const valuesStr = JSON.stringify(data);
+  
   // Get the current path from window.location.pathname
   let currentPath = window.location.pathname;
   // Ensure the path ends with a slash
   if (!currentPath.endsWith('/')) {
     currentPath += '/';
   }
-  document.cookie = cookie_name + "=" + values_str + ";path=" + currentPath;
+  document.cookie = cookie_name + "=" + valuesStr + ";path=" + currentPath;
+}
+
+// Save MIDI mappings to the global cookie
+function save_midi_mappings_to_cookie() {
+  const data = {
+    controls: sliders.map(slider => slider.controlNumber),
+    buttonNotes: buttons.map(button => button.noteNumber)
+  };
+  const mappingsStr = JSON.stringify(data);
+  
+  // Use root path for global cookie
+  document.cookie = midi_mappings_cookie_name + "=" + mappingsStr + ";path=/";
+}
+
+// Backward compatibility function - saves to both cookies
+function save_slider_values_to_cookie() {
+  save_values_to_cookie();
+  save_midi_mappings_to_cookie();
 }
 
 function listInputsAndOutputs(midiAccess) {
@@ -298,7 +345,8 @@ function onMIDIMessage(event) {
             learningSlider.setControlNumber(data1);
             learningSlider.setValue(data2);
             slider_hook(sliders.indexOf(learningSlider), data2);
-            save_slider_values_to_cookie();
+            save_midi_mappings_to_cookie(); // Only save MIDI mappings when learning
+            save_values_to_cookie();        // Also save the new value
             refreshCanvas();
             return;
         }
@@ -308,7 +356,7 @@ function onMIDIMessage(event) {
         if (targetSlider) {
             targetSlider.setValue(data2);
             slider_hook(sliders.indexOf(targetSlider), data2);
-            save_slider_values_to_cookie();
+            save_values_to_cookie(); // Only save values during normal operation
             refreshCanvas();
         }
     } else if (command == 0x90 || command == 0x80) {
@@ -319,7 +367,7 @@ function onMIDIMessage(event) {
         let learningButton = buttons.find(button => button.isLearning);
         if (learningButton) {
             learningButton.setNoteNumber(data1);
-            save_slider_values_to_cookie();
+            save_midi_mappings_to_cookie(); // Only save MIDI mappings when learning
             refreshCanvas();
             return;
         }
@@ -335,7 +383,7 @@ function onMIDIMessage(event) {
                 button_hook(buttons.indexOf(targetButton), 0);
                 sendNoteOn(targetButton.noteNumber, 0x00);
             }
-            save_slider_values_to_cookie();
+            save_values_to_cookie(); // Only save values during normal operation
             refreshCanvas();
         }
     } else if (command == 0xC0) {
@@ -406,8 +454,15 @@ function handleMouseDown(event) {
     // Check buttons first
     for (let button of buttons) {
         if (button.isPointInside(x, y)) {
+            const wasLearningMode = isShiftDown;
             button.handleMouseEvent(x, y, isShiftDown);
-            save_slider_values_to_cookie();
+            
+            if (wasLearningMode) {
+                save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
+            } else {
+                save_values_to_cookie(); // Save values in normal operation
+            }
+            
             refreshCanvas();
             return;
         }
@@ -417,9 +472,16 @@ function handleMouseDown(event) {
     for (let slider of sliders) {
         if (slider.isPointInThumb(x, y)) {
             activeSlider = slider;  // Set the active slider for dragging
+            const wasLearningMode = isShiftDown;
             slider.handleMouseEvent(x, y, isShiftDown);
             slider_hook(sliders.indexOf(slider), slider.value);
-            save_slider_values_to_cookie();
+            
+            if (wasLearningMode) {
+                save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
+            } else {
+                save_values_to_cookie(); // Save values in normal operation
+            }
+            
             refreshCanvas();
             break;
         }
@@ -433,9 +495,16 @@ function handleMouseMove(event) {
         const y = event.clientY - rect.top;
         const isShiftDown = event.shiftKey;
 
+        const wasLearningMode = isShiftDown;
         activeSlider.handleMouseEvent(x, y, isShiftDown);
         slider_hook(sliders.indexOf(activeSlider), activeSlider.value);
-        save_slider_values_to_cookie();
+        
+        if (wasLearningMode) {
+            save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
+        } else {
+            save_values_to_cookie(); // Save values in normal operation
+        }
+        
         refreshCanvas();
     }
 }
@@ -487,7 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    read_slider_values_from_cookie();
+    read_slider_values_from_cookie(); // This now reads both cookies
     // Request MIDI access with both input and output permissions
     navigator.requestMIDIAccess({ sysex: true, software: true }).then(onMIDISuccess, onMIDIFailure);
     refreshCanvas();
