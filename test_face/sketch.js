@@ -64,18 +64,19 @@ function draw() {
   ellipse(cWidth/2 - eye_distance/2, eye_y, eye_width_radius, eye_height_radius);
   ellipse(cWidth/2 + eye_distance/2, eye_y, eye_width_radius, eye_height_radius);
 
-  // Draw mouth as a circular arc with fixed endpoints
-  // Fix the y position of the mouth to be about 3/4 down the face
-  const mouth_y = cHeight/2 + face_height_radius * 0.5;
-  
-  // Calculate the x positions of the mouth endpoints
+  // Define fixed mouth endpoint positions (the dimples)
+  const mouth_dimple_y = cHeight/2 + face_height_radius * 0.5; // Fixed y position for dimples
   const left_x = cWidth/2 - mouth_width/2;
   const right_x = cWidth/2 + mouth_width/2;
+  
+  // The endpoints of the mouth never move
+  const leftPoint = { x: left_x, y: mouth_dimple_y };
+  const rightPoint = { x: right_x, y: mouth_dimple_y };
   
   // Handle the case when mouth is very narrow
   if (mouth_width < 5) {
     // Just draw a horizontal line for a very small mouth
-    line(left_x, mouth_y, right_x, mouth_y);
+    line(leftPoint.x, leftPoint.y, rightPoint.x, rightPoint.y);
     return;
   }
   
@@ -86,59 +87,69 @@ function draw() {
   
   if (abs(mouth_curve - 0.5) < 0.01) {
     // Straight line (when mouth_curve is very close to 0.5)
-    line(left_x, mouth_y, right_x, mouth_y);
+    line(leftPoint.x, leftPoint.y, rightPoint.x, rightPoint.y);
   } else {
     // Determine if it's a smile or frown
     const isSmile = mouth_curve > 0.5;
     
-    // Calculate how "full" the semicircle should be (0 to 1)
-    // 0 = straight line, 1 = full semicircle
-    const arcFullness = map(abs(mouth_curve - 0.5), 0, 0.5, 0, 1);
+    // Calculate the maximum displacement of the center point
+    // For a true semicircle, the displacement would be half the width
+    const maxDisplacement = mouth_width / 2;
     
-    // Maximum height a full semicircle would have
-    const maxHeight = mouth_width / 2;
+    // Calculate the actual displacement based on the curve value (0 to maxDisplacement)
+    // 0.5 = no displacement (straight line)
+    // 0.0 or 1.0 = maximum displacement (semicircle)
+    const displacement = map(abs(mouth_curve - 0.5), 0, 0.5, 0, maxDisplacement);
     
-    // Scale the height based on the desired fullness
-    const arcHeight = maxHeight * arcFullness;
-    
-    // For a chord of length mouth_width and a desired height arcHeight,
-    // calculate the radius:
-    // r = (h^2 + (c/2)^2) / (2h)
-    const halfChord = mouth_width / 2;
-    
-    // Avoid division by zero (this should never happen with our constraints)
-    const safeArcHeight = max(arcHeight, 0.1);
-    const arcRadius = (pow(halfChord, 2) + pow(safeArcHeight, 2)) / (2 * safeArcHeight);
-    
-    // Calculate the center of the circle
-    const arcCenterX = cWidth/2;
-    let arcCenterY;
+    // Calculate the center point of the mouth
+    const centerX = cWidth/2;
+    let centerY;
     
     if (isSmile) {
-      // For a smile, the center is below the mouth
-      arcCenterY = mouth_y + arcRadius - arcHeight;
+      // For a smile, the center point is below the straight line
+      centerY = mouth_dimple_y + displacement;
     } else {
-      // For a frown, the center is above the mouth
-      arcCenterY = mouth_y - (arcRadius - arcHeight);
+      // For a frown, the center point is above the straight line
+      centerY = mouth_dimple_y - displacement;
     }
     
-    // Calculate the angle span of the arc
-    const angleSpan = 2 * asin(halfChord / arcRadius);
+    // Draw the mouth with a quadratic Bezier curve
+    // This ensures the curve always passes through the fixed endpoints
+    // and the variable center point
+    beginShape();
+    vertex(leftPoint.x, leftPoint.y);  // Start at left endpoint
     
-    // Calculate start and end angles based on smile/frown
-    let startAngle, endAngle;
+    // Use quadratic Bezier to create the curve
+    // The control point is directly below/above the midpoint
+    const controlX = centerX;
+    const controlY = centerY;
     
-    if (isSmile) {
-      // For a smile (facing up)
-      startAngle = PI + angleSpan/2;
-      endAngle = TWO_PI - angleSpan/2;
-    } else {
-      // For a frown (facing down)
-      startAngle = angleSpan/2;
-      endAngle = PI - angleSpan/2;
+    // Draw with a good number of segments for smooth curve
+    const segments = 30;
+    for (let i = 1; i < segments; i++) {
+      const t = i / segments;
+      
+      // Quadratic Bezier formula: B(t) = (1-t)²*P0 + 2(1-t)t*P1 + t²*P2
+      // where P0 = left endpoint, P1 = control point, P2 = right endpoint
+      const oneMinusT = 1 - t;
+      const x = oneMinusT * oneMinusT * leftPoint.x + 
+                2 * oneMinusT * t * controlX + 
+                t * t * rightPoint.x;
+      
+      const y = oneMinusT * oneMinusT * leftPoint.y + 
+                2 * oneMinusT * t * controlY + 
+                t * t * rightPoint.y;
+      
+      vertex(x, y);
     }
     
-    // Draw the arc
-    arc(arcCenterX, arcCenterY, arcRadius, arcRadius, startAngle, endAngle);
+    vertex(rightPoint.x, rightPoint.y);  // End at right endpoint
+    endShape();
+    
+    // DEBUG: Visualize the control point (uncomment to see it)
+    // push();
+    // stroke(255, 0, 0);
+    // ellipse(controlX, controlY, 5, 5);
+    // pop();
   }
 }
