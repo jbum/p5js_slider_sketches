@@ -40,16 +40,21 @@ Access the projects through the root index page, which provides links to all ava
 
 1. Copy the `/skeleton/` directory
 2. Modify the `sketch.js` file to create your custom visualization
-3. Update the cookie name in `index.html`
-4. The new project will automatically use the common control panel system
+3. The new project will automatically use the common control panel system and detect the appropriate cookie name
 
 ## Technical Details
 
 ### Cookie System
 
 The projects use two types of cookies:
-- Global MIDI mappings cookie - Shared across all projects
-- Project-specific value cookies - Store slider values and button states for each project
+- **Global MIDI mappings cookie** - Shared across all projects
+  - Named `midi_mappings`
+  - Stores MIDI controller assignments for all projects
+  - Same mappings apply to all projects
+
+- **Project-specific value cookies** - Each project has its own cookie
+  - Automatically named based on the project directory (e.g., `rose_synth_settings_v1`)
+  - Stores slider values and button states specific to that project
 
 ### MIDI Control
 
