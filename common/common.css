@@ -1,27 +1,29 @@
 html, body {
   margin: 0;
   padding: 0;
-  background-color: #444;
 }
 
 canvas#sketch-canvas {
   display: block;
   margin: 0 auto;
 }
-
+body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-color: black;
+}
 div.outer-container {
   display: flex;
   flex-direction: row;
   background: black;
-  width: 650px;
-  height: 512px;
+  margin: auto auto;
 }
 div.sketch-canvas-container {
-  width: 512px;
   background-color: #000000;
 }
 div.sliders-canvas-container {
-  width: 150px;
-  height: 512px;
   background-color: #000000;
+  margin: auto 1rem;
 }
