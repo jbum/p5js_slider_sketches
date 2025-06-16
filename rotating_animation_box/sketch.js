@@ -38,7 +38,8 @@ let gelDisc;
 let luxShader;
 let luxShader2;
 let blurShader;
-
+let use_shaders = false; // not successfully ported yet (having issue with calls to setUniform)
+let use_shader_vars = false;
 // Presets from the original code
 const goodPresets = [
   [0, 0, 0, "rowe/ami"],
@@ -55,22 +56,25 @@ const goodPresets = [
   [2, 0, 0, "spoke/rowe"]
 ];
 
-// function preload() {
-//   try {
-//     // Load shaders
-//     console.log("Loading shaders");
-//     luxShader = loadShader('data/lux.glsl');
-//     luxShader2 = loadShader('data/lux.glsl');
-//     blurShader = loadShader('data/gaussianblur.glsl');
-//     console.log("Done Loading shaders");
-//   } catch (e) {
-//     console.error("Error loading shaders:", e);
-//     // Create dummy shaders that do nothing if loading fails
-//     luxShader = { setUniform: function() {} };
-//     luxShader2 = { setUniform: function() {} };
-//     blurShader = { setUniform: function() {} };
-//   }
-// }
+function preload() {
+  console.log("Preloading shaders");
+  if (use_shaders) {
+    try {
+      // Load shaders with both vertex and fragment shaders
+      console.log("Loading shaders");
+      luxShader = loadShader('data/lux.vert', 'data/lux.frag');
+      luxShader2 = loadShader('data/lux.vert', 'data/lux.frag');
+      blurShader = loadShader('data/blur.vert', 'data/blur.frag');
+      console.log("Done Loading shaders");
+    } catch (e) {
+      console.error("Error loading shaders:", e);
+      // Create dummy shaders that do nothing if loading fails
+      luxShader = { setUniform: function () { } };
+      luxShader2 = { setUniform: function () { } };
+      blurShader = { setUniform: function () { } };
+    }
+  }
+}
 
 function setup() {
   console.log("Setup A");
@@ -253,30 +257,47 @@ function draw() {
   }
   
   // Apply shaders for certain modes
-  /**
-  if ((mode === 0 || mode === 4) && typeof blurShader.setUniform === 'function') {
+  if ((mode === 0 || mode === 4) && luxShader && blurShader && use_shaders && use_shader_vars) {
     try {
-      Apply blur and LED filter shaders
-      blurShader.setUniform('strength', 2.0);
-      blurShader.setUniform('kernelSize', 64);
-      blurShader.setUniform('strength', 64.0 - 63.9 * 1.05);
-      filter(blurShader);
+      // Apply blur shader
+      shader(blurShader);
+      // blurShader.setUniform('uTexture', get());
+      // blurShader.setUniform('uTexOffset', [1.0/width, 1.0/height]);
+      // blurShader.setUniform('uKernelSize', 64);
+      // blurShader.setUniform('uHorizontalPass', 1);
+      // blurShader.setUniform('uStrength', 2.0);
+      rect(0, 0, width, height);
+      resetShader();
       
-      // Apply LED filter with horizontal streaks
-      luxShader.setUniform('kernelSize', 64);
-      luxShader.setUniform('strength', 32.0);
-      luxShader.setUniform('angle', 0); // 0 and PI/2 are good values
-      filter(luxShader);
+      // Apply horizontal lux shader
+      shader(luxShader);
+      // luxShader.setUniform('uTexture', get());
+      // luxShader.setUniform('uTexOffset', [1.0/width, 1.0/height]);
+      // luxShader.setUniform('uKernelSize', 64);
+      // luxShader.setUniform('uStrength', 32.0);
+      // luxShader.setUniform('uAngle', 0);
+      rect(0, 0, width, height);
+      resetShader();
       
-      // Apply LED filter with vertical streaks
-      luxShader2.setUniform('kernelSize', 64);
-      luxShader2.setUniform('strength', 32.0);
-      luxShader2.setUniform('angle', PI / 2); // 0 and PI/2 are good values
-      filter(luxShader2);
+      // Apply vertical lux shader
+      shader(luxShader2);
+      // luxShader2.setUniform('uTexture', get());
+      // luxShader2.setUniform('uTexOffset', [1.0/width, 1.0/height]);
+      // luxShader2.setUniform('uKernelSize', 64);
+      // luxShader2.setUniform('uStrength', 32.0);
+      // luxShader2.setUniform('uAngle', PI / 2);
+      rect(0, 0, width, height);
+      resetShader();
     } catch (e) {
       console.error("Error applying shaders:", e);
     }
-  } **/
+  }
+  if (!use_shaders && (mode == 0 || mode == 4)) {
+    // Draw the color mask with rotation
+    push();
+    // filter(BLUR, 2);
+    pop();
+  }
   
   // Draw monitor (preview of components) if enabled
   if (isMonitor) {
@@ -310,6 +331,7 @@ function draw() {
     text(label, width / 2, height - 4);
     pop();
   }
+  // noLoop();
 }
 
 function keyPressed() {
