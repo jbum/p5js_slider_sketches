@@ -61,17 +61,56 @@ function draw() {
   ellipse(cWidth/2 - eye_distance/2, eye_y, eye_width_radius, eye_height_radius);
   ellipse(cWidth/2 + eye_distance/2, eye_y, eye_width_radius, eye_height_radius);
 
-  // draw mouth as a curve which goes thru
-  beginShape();
-  let nbr_points = 100;
-  let mouse_start_x = cWidth/2 - mouth_width/2;
-  let mouse_end_x = cWidth/2 + mouth_width/2;
-  let mouse_center_y = cHeight/2 + face_height_radius/2;
-  for (let i = 0; i < nbr_points; i++) {
-    let t = i / nbr_points;
-    let x = map(t,0,1,mouse_start_x,mouse_end_x);
-    let y = mouse_center_y + mouth_slope * sin(i * PI/nbr_points);
-    vertex(x, y);
+  // draw mouth as a circular arc
+  let mouth_start_x = cWidth/2 - mouth_width/2;
+  let mouth_end_x = cWidth/2 + mouth_width/2;
+  let mouth_center_y = cHeight/2 + face_height_radius/2;
+  
+  // Handle special cases where we can't draw a proper arc
+  if (mouth_width < 5) {
+    // Just draw a horizontal line for a very small mouth
+    line(mouth_start_x, mouth_center_y, mouth_end_x, mouth_center_y);
+  } else if (abs(mouth_slope) < 0.001) {
+    // For nearly flat mouth, just draw a straight line
+    line(mouth_start_x, mouth_center_y, mouth_end_x, mouth_center_y);
+  } else {
+    // Map mouth_slope to an arc fraction ranging from 0.01 to 0.5 (of a circle)
+    // When mouth_slope is negative, the arc curves upward (smile)
+    // When mouth_slope is positive, the arc curves downward (frown)
+    let arcFraction = map(abs(mouth_slope), 0, face_height_radius/2, 0.01, 0.5);
+    
+    // Ensure arcFraction is within safe bounds to avoid extreme values
+    arcFraction = constrain(arcFraction, 0.01, 0.5);
+    
+    // Calculate arc radius based on mouth width and desired arc fraction
+    let arcRadius = (mouth_width/2) / sin(arcFraction * PI);
+    
+    // Constrain the radius to a reasonable size to avoid extreme values
+    arcRadius = constrain(arcRadius, 0, cWidth * 5);
+    
+    // Calculate center of the circle based on whether it's a smile or frown
+    let arcCenterY;
+    if (mouth_slope < 0) {
+      // Smile - arc center is below the mouth points
+      arcCenterY = mouth_center_y + sqrt(arcRadius*arcRadius - pow(mouth_width/2, 2));
+    } else {
+      // Frown - arc center is above the mouth points
+      arcCenterY = mouth_center_y - sqrt(arcRadius*arcRadius - pow(mouth_width/2, 2));
+    }
+    
+    // Calculate the start and end angles of the arc
+    let startAngle, endAngle;
+    if (mouth_slope < 0) {
+      // Smile
+      startAngle = PI + arcFraction * PI;
+      endAngle = TWO_PI - arcFraction * PI;
+    } else {
+      // Frown
+      startAngle = arcFraction * PI;
+      endAngle = PI - arcFraction * PI;
+    }
+    
+    // Draw the arc
+    arc(cWidth/2, arcCenterY, arcRadius, arcRadius, startAngle, endAngle);
   }
-  endShape();
 }
