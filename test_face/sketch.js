@@ -62,55 +62,58 @@ function draw() {
   ellipse(cWidth/2 + eye_distance/2, eye_y, eye_width_radius, eye_height_radius);
 
   // draw mouth as a circular arc
-  let mouth_start_x = cWidth/2 - mouth_width/2;
-  let mouth_end_x = cWidth/2 + mouth_width/2;
-  let mouth_center_y = cHeight/2 + face_height_radius/2;
+  // Set a fixed chord length based on mouth_width
+  const fixedChordLength = mouth_width;
+  const mouth_center_y = cHeight/2 + face_height_radius/2;
   
   // Handle special cases where we can't draw a proper arc
-  if (mouth_width < 5) {
+  if (fixedChordLength < 5) {
     // Just draw a horizontal line for a very small mouth
-    line(mouth_start_x, mouth_center_y, mouth_end_x, mouth_center_y);
+    line(cWidth/2 - fixedChordLength/2, mouth_center_y, cWidth/2 + fixedChordLength/2, mouth_center_y);
   } else if (abs(mouth_slope) < 0.001) {
     // For nearly flat mouth, just draw a straight line
-    line(mouth_start_x, mouth_center_y, mouth_end_x, mouth_center_y);
+    line(cWidth/2 - fixedChordLength/2, mouth_center_y, cWidth/2 + fixedChordLength/2, mouth_center_y);
   } else {
-    // Map mouth_slope to an arc fraction ranging from 0.01 to 0.5 (of a circle)
+    // Map mouth_slope to an arc height parameter
     // When mouth_slope is negative, the arc curves upward (smile)
     // When mouth_slope is positive, the arc curves downward (frown)
-    let arcFraction = map(abs(mouth_slope), 0, face_height_radius/2, 0.01, 0.5);
+    const maxHeight = face_height_radius/3;
+    let arcHeight = map(abs(mouth_slope), 0, face_height_radius/2, 0, maxHeight);
+    arcHeight = constrain(arcHeight, 0, maxHeight);
     
-    // Ensure arcFraction is within safe bounds to avoid extreme values
-    arcFraction = constrain(arcFraction, 0.01, 0.5);
+    // Direction of the arc (up or down)
+    const direction = mouth_slope < 0 ? -1 : 1;
     
-    // Calculate arc radius based on mouth width and desired arc fraction
-    let arcRadius = (mouth_width/2) / sin(arcFraction * PI);
+    // Using the chord length and desired height, calculate the circle properties
+    // For a chord of length c and a desired height h, the radius is:
+    // r = (h^2 + (c/2)^2) / (2h)
+    const halfChord = fixedChordLength / 2;
     
-    // Constrain the radius to a reasonable size to avoid extreme values
-    arcRadius = constrain(arcRadius, 0, cWidth * 5);
-    
-    // Calculate center of the circle based on whether it's a smile or frown
-    let arcCenterY;
-    if (mouth_slope < 0) {
-      // Smile - arc center is below the mouth points
-      arcCenterY = mouth_center_y + sqrt(arcRadius*arcRadius - pow(mouth_width/2, 2));
-    } else {
-      // Frown - arc center is above the mouth points
-      arcCenterY = mouth_center_y - sqrt(arcRadius*arcRadius - pow(mouth_width/2, 2));
+    // Avoid division by zero
+    if (arcHeight < 0.1) {
+      arcHeight = 0.1;
     }
     
-    // Calculate the start and end angles of the arc
+    const arcRadius = (pow(arcHeight, 2) + pow(halfChord, 2)) / (2 * arcHeight);
+    
+    // Calculate the center point of the circle
+    const arcCenterX = cWidth/2;
+    const arcCenterY = mouth_center_y + direction * (arcRadius - arcHeight);
+    
+    // Calculate angles based on the chord
+    const angleSpan = 2 * asin(halfChord / arcRadius);
+    
+    // Calculate start and end angles
     let startAngle, endAngle;
-    if (mouth_slope < 0) {
-      // Smile
-      startAngle = PI + arcFraction * PI;
-      endAngle = TWO_PI - arcFraction * PI;
-    } else {
-      // Frown
-      startAngle = arcFraction * PI;
-      endAngle = PI - arcFraction * PI;
+    if (direction < 0) { // Smile
+      startAngle = PI + angleSpan/2;
+      endAngle = TWO_PI - angleSpan/2;
+    } else { // Frown
+      startAngle = angleSpan/2;
+      endAngle = PI - angleSpan/2;
     }
     
     // Draw the arc
-    arc(cWidth/2, arcCenterY, arcRadius, arcRadius, startAngle, endAngle);
+    arc(arcCenterX, arcCenterY, arcRadius, arcRadius, startAngle, endAngle);
   }
 }
