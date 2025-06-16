@@ -5,11 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <title>Rotating Animation Box</title>
-
+    
+    <link rel="shortcut icon" href="/common/favicon.ico" />
     <link rel="stylesheet" type="text/css" href="style.css" />
 
-    <script src="libraries/p5.min.js"></script>
-    <script src="libraries/p5.sound.min.js"></script>
+    <script src="/common/library/p5.min.js"></script>
+    <!-- <script src="/common/library/p5.sound.min.js"></script> -->
   </head>
 
   <body>
@@ -26,15 +27,17 @@
       let cookie_name = "rotating_animation_box_settings_v1";
     </script>
     <script src="sketch.js"></script>
-    <script src="midi_sliders.js"></script>
-    
+    <script src="/common/midi_sliders.js"></script>
+
     <!-- Include shader-specific libraries -->
     <script>
       // Fallback in case shader loading fails
-      window.onerror = function(message, source, lineno, colno, error) {
+      window.onerror = function (message, source, lineno, colno, error) {
         console.error("Error occurred:", message, "at", source, ":", lineno);
         if (message.includes("shader") || message.includes("WebGL")) {
-          alert("WebGL shader error detected. This browser may not fully support the required features.");
+          alert(
+            "WebGL shader error detected. This browser may not fully support the required features."
+          );
         }
         return true; // prevents default error handling
       };

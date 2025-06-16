@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>P5.js Projects</title>
+    <link rel="shortcut icon" href="/common/favicon.ico" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+      }
+      .project-list {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 30px;
+      }
+      .project-item {
+        background-color: white;
+        border-radius: 8px;
+        padding: 20px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        transition: transform 0.2s ease;
+      }
+      .project-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+      }
+      .project-item a {
+        color: #2a6fc9;
+        text-decoration: none;
+        font-size: 1.2rem;
+        font-weight: bold;
+      }
+      .project-item a:hover {
+        text-decoration: underline;
+      }
+      .project-item p {
+        margin-top: 8px;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>P5.js Projects</h1>
+    
+    <div class="project-list">
+      <div class="project-item">
+        <a href="/rose_synth/">Rose Synth</a>
+        <p>Interactive rose pattern synthesizer with MIDI control.</p>
+      </div>
+      
+      <div class="project-item">
+        <a href="/rotating_animation_box/">Rotating Animation Box</a>
+        <p>Animated rotation effects with WebGL shaders.</p>
+      </div>
+      
+      <div class="project-item">
+        <a href="/test_face/">Test Face</a>
+        <p>Facial animation experiments with p5.js.</p>
+      </div>
+      
+      <div class="project-item">
+        <a href="/skeleton/">Skeleton</a>
+        <p>Starter template for new p5.js projects.</p>
+      </div>
+    </div>
+  </body>
+</html>
