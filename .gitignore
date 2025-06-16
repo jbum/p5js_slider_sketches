@@ -1,0 +1,7 @@
+# Ignore attic directory
+attic/
+
+# Common files to ignore
+.DS_Store
+node_modules/
+*.log
