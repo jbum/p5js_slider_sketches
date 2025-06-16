@@ -7,6 +7,34 @@ let lastRefreshTime = 0;
 let animationFrameId = null;
 let midi_mappings_cookie_name = "midi_mappings"; // Global cookie for MIDI mappings
 
+// Automatically determine the project-specific cookie name if not already defined
+function determineProjectCookieName() {
+  // If cookie_name is already defined in index.html, use that
+  if (typeof cookie_name !== 'undefined') {
+    return cookie_name;
+  }
+  
+  // Otherwise, derive it from the URL path
+  const pathname = window.location.pathname;
+  
+  // Extract the project name from the path
+  // Example: "/rose_synth/" -> "rose_synth"
+  let projectName = "";
+  
+  // Handle both root path and subdirectory paths
+  if (pathname === "/" || pathname === "") {
+    projectName = "root";
+  } else {
+    // Remove leading and trailing slashes, then split by slash
+    const pathParts = pathname.replace(/^\/|\/$/g, "").split("/");
+    // Use the first part as the project name
+    projectName = pathParts[0] || "unknown";
+  }
+  
+  // Create a consistent cookie name format
+  return `${projectName}_settings_v1`;
+}
+
 class Button {
     constructor(x, y, width = 40, height = 40) {
         this.x = x;
@@ -210,6 +238,9 @@ function getCookie(name) {
 
 // Read both cookies: local values and global MIDI mappings
 function read_slider_values_from_cookie() {
+  // Get the project-specific cookie name
+  const projectCookieName = determineProjectCookieName();
+  
   // First try to read MIDI mappings (global)
   const mappingsCookieValue = getCookie(midi_mappings_cookie_name);
   if (mappingsCookieValue) {
@@ -236,7 +267,7 @@ function read_slider_values_from_cookie() {
   }
   
   // Then read local project values
-  const valuesCookieValue = getCookie(cookie_name);
+  const valuesCookieValue = getCookie(projectCookieName);
   if (valuesCookieValue) {
     try {
       const valuesData = JSON.parse(valuesCookieValue);
@@ -276,6 +307,9 @@ function read_slider_values_from_cookie() {
 
 // Save slider and button values to the local cookie
 function save_values_to_cookie() {
+  // Get the project-specific cookie name
+  const projectCookieName = determineProjectCookieName();
+  
   const data = {
     values: sliders.map(slider => slider.value),
     buttonStates: buttons.map(button => button.value)
@@ -288,7 +322,7 @@ function save_values_to_cookie() {
   if (!currentPath.endsWith('/')) {
     currentPath += '/';
   }
-  document.cookie = cookie_name + "=" + valuesStr + ";path=" + currentPath;
+  document.cookie = projectCookieName + "=" + valuesStr + ";path=" + currentPath;
 }
 
 // Save MIDI mappings to the global cookie

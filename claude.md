@@ -11,7 +11,7 @@ This is a set of p5.js projects organized as a single website with multiple sub-
 
 - Individual project directories (e.g., `/rose_synth/`, `/rotating_animation_box/`, etc.)
   - Each contains its own `sketch.js` for the specific project functionality
-  - `index.html` defines the cookie name and imports common resources
+  - `index.html` imports common resources
   - `style.css` for project-specific styles
 
 ## Cookie System
@@ -25,8 +25,17 @@ The projects use two types of cookies:
 2. **Project-specific values cookies** - Each project uses its own cookie to store:
    - Slider values
    - Button states (on/off)
-   - Cookie name defined in each project's `index.html`
+   - Cookie name automatically generated from project directory name
+   - Format: `{projectName}_settings_v1`
    - Stored at project-specific paths
+
+### Automatic Cookie Naming
+
+The system now automatically determines the appropriate cookie name for each project:
+
+1. It extracts the project name from the URL path (e.g., `/rose_synth/` → `rose_synth`)
+2. Creates a standardized cookie name in the format `{projectName}_settings_v1`
+3. No manual configuration needed in index.html (though you can still override by defining `cookie_name` explicitly)
 
 ## MIDI Control
 
