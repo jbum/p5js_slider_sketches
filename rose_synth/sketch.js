@@ -30,11 +30,9 @@ let cycleLength = 3 * 60;   // Length of the full cycle in seconds
 let durRange = cycleLength * 1000/nbrPoints;        // Duration range
 let minDur = durRange/2;    // Minimum duration
 
-const kWidth = 512;             // width of graphics
-const kHeight = 512;            // height of graphics
+let kWidth = 512;             // width of graphics
+let kHeight = 512;            // height of graphics
 
-let cx = kWidth/2, cy = kHeight/2;          // center coordinates
-let circleRadius;  
 let tines = [];        // keeps track of current position of note, by angle
 let lastSound = [];     // keeps track of time last note sounded
 // let isOn = [];
@@ -62,7 +60,6 @@ function setup() {
   userStartAudio();
   myCanvas = createCanvas(kWidth, kWidth, document.getElementById('sketch-canvas'));
   background(0);
-  circleRadius = (Math.min(width, height) / 2) * 0.95;
   colorMode(HSB, 1);
   ellipseMode(RADIUS);
   // load vars here...
@@ -268,6 +265,9 @@ function button_hook_process(index, value) {
 function draw() {
   empty_slider_queue();
   empty_button_queue();
+  let circleRadius = (min(width,height)/2) * 0.95;
+  let cx = width/2, cy = height/2;          // center coordinates
+
   // console.log("draw");
   if (use_blur) {
     // apply blur filter
@@ -365,9 +365,25 @@ function draw() {
   }
 }
 
+let small_size = 512;
+let large_size = 900;
+
+function toggle_sketch_size() {
+  kWidth = kWidth === small_size ? large_size : small_size;
+  kHeight = kWidth;
+
+  resizeCanvas(kWidth, kHeight);
+}
+
+
 function keyPressed() {
   if (key === ' ') {
     isMute = !isMute;
     console.log(isMute ? "MUTED" : "UNMUTED");
+  }
+  if (key === 'x' || key === 'X') {
+    toggle_slider_visibility();
+  } else if (key === 's' || key === 'S') {
+    toggle_sketch_size();
   }
 }

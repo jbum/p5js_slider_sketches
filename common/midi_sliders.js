@@ -6,6 +6,19 @@ let buttons = [];
 let lastRefreshTime = 0;
 let animationFrameId = null;
 let midi_mappings_cookie_name = "midi_mappings"; // Global cookie for MIDI mappings
+let sliders_are_hidden = false;
+
+function toggle_slider_visibility() {
+  sliders_are_hidden = !sliders_are_hidden;
+  console.log("Sliders are now", sliders_are_hidden ? "hidden" : "visible");
+  // toggle display of sliders-canvas
+  let sliders_canvas = document.getElementById('sliders-canvas');
+  if (sliders_are_hidden) {
+    sliders_canvas.style.display = 'none';
+  } else {
+    sliders_canvas.style.display = 'block';
+  }
+}
 
 // Automatically determine the project-specific cookie name if not already defined
 function determineProjectCookieName() {

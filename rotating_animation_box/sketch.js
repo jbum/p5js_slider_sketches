@@ -18,8 +18,8 @@ const SLOT_WIDTH = 7;
 let values = [0, 64, 0, 0, 0, 0, 127, 0]; // Default slider values
 let button_values = [0, 0, 0, 0, 0, 0, 0, 0]; // Default button values
 
-const kWidth = 600;  // width of graphics
-const kHeight = 600; // height of graphics
+let kWidth = 600;  // width of graphics
+let kHeight = 600; // height of graphics
 const msPerFrame = 1000 / 30.0;
 
 // Simulation variables
@@ -93,6 +93,18 @@ function setup() {
   // Process slider values
   updateFromSliders();
   console.log("Setup Z");
+}
+
+let small_size = 600;
+let large_size = 900;
+
+function toggle_sketch_size() {
+  kWidth = kWidth === small_size ? large_size : small_size;
+  kHeight = kWidth;
+  resizeCanvas(kWidth, kHeight);
+  gelDisc = getColorGel(curStripe);
+  colorMask = getColorMask(curCplate, gelDisc);
+  grilleDisc = getGrille(curGrille);
 }
 
 function updateFromSliders() {
@@ -400,6 +412,10 @@ function keyPressed() {
   } else if (key === 'm') {
     isMonitor = !isMonitor;
     values[6] = isMonitor ? 127 : 0;
+  } else if (key === 'x' || key === 'X') {
+    toggle_slider_visibility();
+  } else if (key === 's' || key === 'S') {
+    toggle_sketch_size();
   }
   
   console.log(goodPresets[lastPreset][3], "c/g/s", curCplate, ",", curGrille, ",", curStripe);

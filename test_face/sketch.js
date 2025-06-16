@@ -153,3 +153,22 @@ function draw() {
     // pop();
   }
 }
+
+let small_size = 500;
+let large_size = 900;
+let current_size = small_size;
+
+function toggle_sketch_size() {
+  cWidth = cWidth === small_size ? large_size : small_size;
+  cHeight = cWidth;
+  resizeCanvas(cWidth, cHeight);
+}
+
+
+function keyPressed() {
+  if (key === 'x' || key === 'X') {
+    toggle_slider_visibility();
+  } else if (key === 's' || key === 'S') {
+    toggle_sketch_size();
+  }
+}

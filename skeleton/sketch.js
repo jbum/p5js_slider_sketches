@@ -1,8 +1,8 @@
 let values = [64,64,0,0,0,0,0,0];
 let button_values = [0, 0, 0, 0, 0, 0, 0, 0];
 
-const kWidth = 512;             // width of graphics
-const kHeight = 512;            // height of graphics
+let kWidth = 512;             // width of graphics
+let kHeight = 512;            // height of graphics
 
 function setup() {
   let min_window_dimension = Math.min(windowWidth, windowHeight);
@@ -62,8 +62,8 @@ function draw() {
   for (let i = 0; i < 8; i++) {
     gx = i % 4;
     gy = int(i / 4);
-    tw = 32;
-    th = 32;
+    tw = 48;
+    th = 48;
     let x = 64 + tw*gx;
     let y = th*gy + height-64;
     let radius = 16;
@@ -79,5 +79,19 @@ function draw() {
 
 }
 
+let small_size = 512;
+let large_size = 900;
+
+function toggle_sketch_size() {
+  kWidth = kWidth === small_size ? large_size : small_size;
+  kHeight = kWidth;
+  resizeCanvas(kWidth, kHeight);
+}
+
 function keyPressed() {
+  if (key === 'x' || key === 'X') { 
+    toggle_slider_visibility();
+  } else if (key === 's' || key === 'S') {
+    toggle_sketch_size();
+  }
 }
