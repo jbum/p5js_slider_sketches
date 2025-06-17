@@ -5,3 +5,6 @@ attic/
 .DS_Store
 node_modules/
 *.log
+
+.cursor/
+.vscode/
