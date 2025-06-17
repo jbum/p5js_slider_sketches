@@ -226,13 +226,13 @@ function empty_button_queue() {
 }
 
 function button_hook_process(index, value) {
-  // console.log("button_hook", index, value);
+  console.log("recv button_hook", index, value);
   if (index >= 0 && index < button_values.length) {
     button_values[index] = value;
   }
   switch (index) {
     case 0:
-      if (value > 64) {
+      if (value > 0) {
         // myCanvas.mousePressed(beginSound);
         beginSound();
       } else {
@@ -240,24 +240,25 @@ function button_hook_process(index, value) {
       }
       break;
     case 1:
-      is_Rose = value > 64;
-      background(0,0,0);
+      is_Rose = value > 0;
+      background(0, 0, 0);
+      console.log("is_Rose", is_Rose);
       break;
     case 2:
-      reversePitches = value > 64;
+      reversePitches = value > 0;
       reinit_Sound();
       // console.log("reversePitches " + reversePitches);
       // saveVars()
       break;
     case 3:
-      use_harmonics = value > 64;
+      use_harmonics = value > 0;
       reinit_Sound();
       break;
     case 4:
-      use_blur = value > 64;
+      use_blur = value > 0;
       break;
     case 5:
-      use_trails = value > 64;
+      use_trails = value > 0;
       break;
   }
 }
@@ -360,7 +361,7 @@ function draw() {
   // Line
   if (!is_Rose) {
     strokeWeight(0.5);
-    stroke(0, 0, 1, .05);
+    stroke(0, 0, 1, .5);
     line(width / 2, height / 2, width, height / 2);
   }
 }

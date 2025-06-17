@@ -26,6 +26,7 @@ function empty_slider_queue() {
 
 function slider_hook_process(slider_index, value) {
   values[slider_index] = value;
+  console.log("slider revieved ", slider_index, "value", value);
 }
 
 let button_queue = [];
@@ -43,6 +44,7 @@ function empty_button_queue() {
 
 function button_hook_process(index, value) {
   button_values[index] = value;
+  console.log("button revieved ", index, "value", value);
 }
 
 function draw() {
@@ -67,7 +69,7 @@ function draw() {
     let x = 64 + tw*gx;
     let y = th*gy + height-64;
     let radius = 16;
-    if (button_values[i] > 64) {
+    if (button_values[i] > 0) {
       fill(255);
     } else {
       fill(0);

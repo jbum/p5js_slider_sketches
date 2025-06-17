@@ -6,8 +6,8 @@ let is_regular = false;
 let iRadius_ratio = 0.25;
 let cWidth = 0;
 let cHeight = 0;
-let values = [0.5, 0.5, 0.5, 0.5,
-              0.5, 0.5, 0.5, 0.5];
+let values = [0.7, 0.87, 0.8, 0.4,
+              0.25, 0.67, 0.8, 0.89];
 
 function setup() {
   let min_window_dimension = Math.min(windowWidth, windowHeight);
@@ -28,7 +28,7 @@ function setup() {
 
 function slider_hook(index, value) {
   if (index >= 0 && index < values.length) {
-    values[index] = value / 127;
+    values[index] = value;
   }
 }
 

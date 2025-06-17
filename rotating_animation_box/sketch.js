@@ -29,7 +29,7 @@ let curCplate = 0;
 let curGrille = 0;
 let curStripe = 0;
 let lastPreset = 0;
-let isMonitor = true;
+let isMonitor = false;
 
 // Graphics objects
 let colorMask;
@@ -137,9 +137,6 @@ function updateFromSliders() {
       updateDiscs();
     }
   }
-  
-  // Monitor toggle
-  isMonitor = values[6] > 64;
 }
 
 function updateDiscs() {
@@ -182,37 +179,37 @@ function empty_button_queue() {
 function button_hook_process(index, value) {
   button_values[index] = value;
   
-  // Handle button presses
-  if (value > 64) {
-    // For example, buttons could change presets, toggle features, etc.
-    if (index === 0) {
-      // First button cycles through modes
-      mode = (mode + 1) % 5;
-      values[0] = map(mode, 0, 4, 0, 127);
-    } else if (index === 1) {
-      // Second button goes to previous preset
-      lastPreset = (lastPreset + goodPresets.length - 1) % goodPresets.length;
-      values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 127);
-      [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
-      updateDiscs();
-      values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
-      values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
-      values[4] = map(curStripe, 0, 2, 0, 127);
-    } else if (index === 2) {
-      // Third button goes to next preset
-      lastPreset = (lastPreset + 1) % goodPresets.length;
-      values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 127);
-      [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
-      updateDiscs();
-      values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
-      values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
-      values[4] = map(curStripe, 0, 2, 0, 127);
-    } else if (index === 3) {
-      // Fourth button toggles monitor
-      isMonitor = !isMonitor;
-      values[6] = isMonitor ? 127 : 0;
-    }
+  if (index == 0) {
+    isMonitor = value > 0;
   }
+
+  // Handle button presses
+  // if (value > 64) {
+  //   // For example, buttons could change presets, toggle features, etc.
+  //   if (index === 0) {
+  //     // First button cycles through modes
+  //     mode = (mode + 1) % 5;
+  //     values[0] = map(mode, 0, 4, 0, 127);
+  //   } else if (index === 1) {
+  //     // Second button goes to previous preset
+  //     lastPreset = (lastPreset + goodPresets.length - 1) % goodPresets.length;
+  //     values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 127);
+  //     [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
+  //     updateDiscs();
+  //     values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
+  //     values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
+  //     values[4] = map(curStripe, 0, 2, 0, 127);
+  //   } else if (index === 2) {
+  //     // Third button goes to next preset
+  //     lastPreset = (lastPreset + 1) % goodPresets.length;
+  //     values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 127);
+  //     [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
+  //     updateDiscs();
+  //     values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
+  //     values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
+  //     values[4] = map(curStripe, 0, 2, 0, 127);
+  // }
+  // }
 }
 
 function draw() {
@@ -411,7 +408,7 @@ function keyPressed() {
     values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 127);
   } else if (key === 'm') {
     isMonitor = !isMonitor;
-    values[6] = isMonitor ? 127 : 0;
+    button_values[0] = isMonitor;
   } else if (key === 'x' || key === 'X') {
     toggle_slider_visibility();
   } else if (key === 's' || key === 'S') {

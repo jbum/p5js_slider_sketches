@@ -48,15 +48,25 @@ function determineProjectCookieName() {
   return `${projectName}_settings_v1`;
 }
 
+function myMap(v, min, max, out_min, out_max) {
+  return (v - min) * (out_max - out_min) / (max - min) + out_min;
+}
+
+function myConstrain(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
 class Button {
-    constructor(x, y, width = 40, height = 40) {
+    constructor(b_config, idx, x, y, width = 40, height = 40) {
+        this.idx = idx;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.value = false;
-        this.noteNumber = 0;
+        this.value = b_config.defaultVal;
+        this.noteNumber = idx < 4? 9 + idx : 25 + (idx-4);
         this.isLearning = false;
+        this.b_config = b_config;
     }
 
     render(ctx) {
@@ -64,7 +74,7 @@ class Button {
         ctx.fillStyle = this.value ? 'rgba(100,100,255,0.5)' : '#444444';
         
         // Draw rounded rectangle
-        const radius = 8;
+        const radius = this.width/2*.45;
         ctx.beginPath();
         ctx.moveTo(this.x + radius, this.y);
         ctx.lineTo(this.x + this.width - radius, this.y);
@@ -82,6 +92,15 @@ class Button {
             ctx.fillStyle = 'rgba(0,255,0,0.5)';
             ctx.fill();
         }
+
+      // Draw button name
+      
+        ctx.save();
+        ctx.font = '10px Helvetica';
+        ctx.fillStyle = '#AAAAAA';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.b_config.name, this.x + this.width/2, this.y + this.height + 12);
+        ctx.restore();
     }
 
     isPointInside(x, y) {
@@ -105,11 +124,11 @@ class Button {
 
         this.value = !this.value;
         if (this.value) {
-            button_hook(buttons.indexOf(this), 127);
-            sendNoteOn(this.noteNumber, 0x7F);
+            button_hook(buttons.indexOf(this), 1);
+            sendNoteOn(this.noteNumber, 0x1C);
         } else {
             button_hook(buttons.indexOf(this), 0);
-            sendNoteOn(this.noteNumber, 0x00);
+            sendNoteOn(this.noteNumber, 0x0C);
         }
         return true;
     }
@@ -124,15 +143,17 @@ class Slider {
     static kAdjustFade = 2000; // milliseconds
     static kDefaultControlStart = 0x15;
 
-    constructor(x, y, width = 128, height = 10, index = 0) {
+    constructor(s_config, idx, x, y, width = 128, height = 10, index = 0) {
+        this.idx = idx;
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
-        this.value = 0;
+        this.value = s_config.defaultVal;
         this.lastAdjusted = new Date();
         this.controlNumber = Slider.kDefaultControlStart + index;
         this.isLearning = false;
+        this.s_config = s_config;
     }
 
     render(ctx) {
@@ -148,7 +169,7 @@ class Slider {
         
         // Calculate fade based on time since adjustment
         let timeSince = this.timeSinceAdjusted();
-        let alpha = Math.max(0.25, 1.0 - (timeSince / Slider.kAdjustFade));
+        let alpha = Math.max(0.55, 1.0 - (timeSince / Slider.kAdjustFade));
         
         // Draw slider thumb with fade effect
         if (this.isLearning) {
@@ -157,8 +178,16 @@ class Slider {
             ctx.fillStyle = `rgba(255,255,255,${alpha})`;
         }
         ctx.beginPath();
-        ctx.ellipse(this.x + this.value, this.y + this.height/2, 8, 8, 0, 0, 2 * Math.PI);
+        ctx.ellipse(this.x + myMap(this.value, this.s_config.minVal, this.s_config.maxVal, 0, this.width), this.y + this.height/2, 8, 8, 0, 0, 2 * Math.PI);
         ctx.fill();
+
+        // Draw slider name
+        ctx.save();
+        ctx.font = '10px Helvetica';
+        ctx.fillStyle = '#AAAAAA';
+        ctx.textAlign = 'center';
+        ctx.fillText(this.s_config.name, this.x + this.width/2, this.y + this.height + 12);
+        ctx.restore();
     }
 
     setValue(value) {
@@ -171,7 +200,7 @@ class Slider {
     }
 
     isPointInThumb(x, y) {
-        const thumbX = this.x + this.value;
+        const thumbX = this.x + myMap(this.value, this.s_config.minVal, this.s_config.maxVal, 0, this.width);
         const thumbY = this.y + this.height/2;
         const dx = x - thumbX;
         const dy = y - thumbY;
@@ -192,8 +221,9 @@ class Slider {
             return false; // Don't update value in learning mode
         }
 
-        // Convert mouse x to slider value
-        let newValue = Math.max(0, Math.min(127, Math.round(x - this.x)));
+      // Convert mouse x to slider value
+        console.log("x", x, "this.x", this.x, "this.x + this.width", this.x + this.width);
+        let newValue = myMap(x, this.x, this.x + this.width, this.s_config.minVal, this.s_config.maxVal);
         this.setValue(newValue);
         return true;
     }
@@ -230,6 +260,7 @@ function onMIDISuccess(midiAccess) {
       console.log("Using MIDI output:", midiOutput.name);
     }
   }
+  read_slider_values_from_cookie();
 }
 
 function onMIDIFailure(msg) {
@@ -296,9 +327,16 @@ function read_slider_values_from_cookie() {
       } else {
         // New format with separate fields
         if (valuesData.values && valuesData.values.length) {
+            valuesData.values.forEach((value, index) => {
+                console.log(`slider ${index}: ${value}`);
+            });
+        }
+        if (valuesData.values && valuesData.values.length) {
           for (let i = 0; i < valuesData.values.length && i < sliders.length; ++i) {
-            sliders[i].setValue(valuesData.values[i]);
-            slider_hook(i, valuesData.values[i]);
+            let v = valuesData.values[i];
+            v = myConstrain(v, sliders[i].s_config.minVal, sliders[i].s_config.maxVal);
+            sliders[i].setValue(v);
+            slider_hook(i, v);
           }
         }
         
@@ -306,9 +344,8 @@ function read_slider_values_from_cookie() {
         if (valuesData.buttonStates && valuesData.buttonStates.length) {
           for (let i = 0; i < valuesData.buttonStates.length && i < buttons.length; ++i) {
             buttons[i].value = valuesData.buttonStates[i];
-            if (buttons[i].value) {
-              button_hook(i, 127);
-            }
+            button_hook(i, buttons[i].value);
+            sendNoteOn(buttons[i].noteNumber, buttons[i].value ? 0x1C : 0x0C);
           }
         }
       }
@@ -400,9 +437,11 @@ function onMIDIMessage(event) {
 
         // Normal operation - find slider by control number
         let targetSlider = sliders.find(slider => slider.controlNumber === data1);
-        if (targetSlider) {
-            targetSlider.setValue(data2);
-            slider_hook(sliders.indexOf(targetSlider), data2);
+      if (targetSlider) {
+            // convert from MIDI value to slider value
+            let v = myMap(data2, 0, 127, targetSlider.s_config.minVal, targetSlider.s_config.maxVal);
+            targetSlider.setValue(v);
+            slider_hook(sliders.indexOf(targetSlider), v);
             save_values_to_cookie(); // Only save values during normal operation
             refreshCanvas();
         }
@@ -425,10 +464,10 @@ function onMIDIMessage(event) {
             targetButton.value = !targetButton.value;  // Toggle the state
             if (targetButton.value) {
                 button_hook(buttons.indexOf(targetButton), velocity);
-                sendNoteOn(targetButton.noteNumber, 0x7F);
+                sendNoteOn(targetButton.noteNumber, 0x1C);
             } else {
                 button_hook(buttons.indexOf(targetButton), 0);
-                sendNoteOn(targetButton.noteNumber, 0x00);
+                sendNoteOn(targetButton.noteNumber, 0x0C);
             }
             save_values_to_cookie(); // Only save values during normal operation
             refreshCanvas();
@@ -563,7 +602,7 @@ function handleMouseUp() {
 function sendNoteOn(note, velocity) {
     if (midiOutput) {
       // Note On message: 0x90 (note on) + channel 0
-        let sendMessage = [0x90, note, velocity];
+        let sendMessage = [0x98, note, velocity];
         console.log("Sending MIDI message:", sendMessage);
         midiOutput.send(sendMessage);
     }
@@ -585,27 +624,32 @@ document.addEventListener('DOMContentLoaded', () => {
     let slider_x = (150-128)/2;
     let slider_top_y = 10;  // Changed from 60 to 10
     for (let i = 0; i < nbr_sliders; i++) {
-        sliders.push(new Slider(slider_x, i * 50 + slider_top_y));
+        let s_config = sliders_cfg[i];
+        sliders.push(new Slider(s_config, i, slider_x, i * 50 + slider_top_y));
     }
 
     // Initialize buttons (2 rows of 4)
-    let button_spacing = 8;
+    let button_spacing_x = 8;
+    let button_spacing_y = 16;
+    
     let button_size = 30;
     let side_margin = 4;
-    let button_start_x = side_margin + (150 - side_margin * 2 - (4 * (button_size + button_spacing) - button_spacing)) / 2;
-    let button_start_y = 420;  // Position below sliders
+    let button_start_x = side_margin + (150 - side_margin * 2 - (4 * (button_size + button_spacing_x) - button_spacing_x)) / 2;
+    let button_start_y = 406;  // Position below sliders
 
     for (let row = 0; row < 2; row++) {
-        for (let col = 0; col < 4; col++) {
-            let x = button_start_x + col * (button_size + button_spacing);
-            let y = button_start_y + row * (button_size + button_spacing);
-            buttons.push(new Button(x, y, button_size, button_size));
+      for (let col = 0; col < 4; col++) {
+        let button_idx = row * 4 + col;
+        let b_config = buttons_cfg[button_idx];
+        let x = button_start_x + col * (button_size + button_spacing_x);
+        let y = button_start_y + row * (button_size + button_spacing_y + 4);
+        buttons.push(new Button(b_config, button_idx, x, y, button_size, button_size));
         }
     }
     
-    read_slider_values_from_cookie(); // This now reads both cookies
     // Request MIDI access with both input and output permissions
     navigator.requestMIDIAccess({ sysex: true, software: true }).then(onMIDISuccess, onMIDIFailure);
+    read_slider_values_from_cookie(); // This now reads both cookies
     refreshCanvas();
 });
 
