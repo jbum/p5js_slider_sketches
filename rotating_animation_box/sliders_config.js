@@ -1,12 +1,12 @@
 const sliders_cfg = [
-    { minVal: 0, maxVal: 127, defaultVal: 0, name: "display mode" },
-    { minVal: 0, maxVal: 127, defaultVal: 54, name: "rotation speed" },
-    { minVal: 0, maxVal: 127, defaultVal: 87, name: "src graphic" },
-    { minVal: 0, maxVal: 127, defaultVal: 72, name: "grille" },
-    { minVal: 0, maxVal: 127, defaultVal: 72, name: "color gel" },
-    { minVal: 0, maxVal: 127, defaultVal: 84, name: "preset" },
-    { minVal: 0, maxVal: 127, defaultVal: 88, name: "unused" },
-    { minVal: 0, maxVal: 127, defaultVal: 73, name: "unused" }
+    { minVal: 0, maxVal: 1, defaultVal: 0.00, name: "display mode" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.43, name: "rotation speed" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.69, name: "src graphic" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.57, name: "grille" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.57, name: "color gel" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.66, name: "preset" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.69, name: "unused" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.57, name: "unused" }
 ];
 
 const buttons_cfg = [

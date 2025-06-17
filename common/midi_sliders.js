@@ -56,6 +56,11 @@ function myConstrain(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
+function myMapConstrain(v, min, max, out_min, out_max) {
+  return myConstrain(myMap(v, min, max, out_min, out_max), out_min, out_max);
+}
+
+
 class Button {
     constructor(b_config, idx, x, y, width = 40, height = 40) {
         this.idx = idx;
@@ -178,7 +183,7 @@ class Slider {
             ctx.fillStyle = `rgba(255,255,255,${alpha})`;
         }
         ctx.beginPath();
-        ctx.ellipse(this.x + myMap(this.value, this.s_config.minVal, this.s_config.maxVal, 0, this.width), this.y + this.height/2, 8, 8, 0, 0, 2 * Math.PI);
+        ctx.ellipse(this.x + myMapConstrain(this.value, this.s_config.minVal, this.s_config.maxVal, 0, this.width), this.y + this.height/2, 8, 8, 0, 0, 2 * Math.PI);
         ctx.fill();
 
         // Draw slider name
@@ -223,7 +228,7 @@ class Slider {
 
       // Convert mouse x to slider value
         console.log("x", x, "this.x", this.x, "this.x + this.width", this.x + this.width);
-        let newValue = myMap(x, this.x, this.x + this.width, this.s_config.minVal, this.s_config.maxVal);
+        let newValue = myMapConstrain(x, this.x, this.x + this.width, this.s_config.minVal, this.s_config.maxVal);
         this.setValue(newValue);
         return true;
     }
@@ -439,7 +444,7 @@ function onMIDIMessage(event) {
         let targetSlider = sliders.find(slider => slider.controlNumber === data1);
       if (targetSlider) {
             // convert from MIDI value to slider value
-            let v = myMap(data2, 0, 127, targetSlider.s_config.minVal, targetSlider.s_config.maxVal);
+            let v = myMapConstrain(data2, 0, 127, targetSlider.s_config.minVal, targetSlider.s_config.maxVal);
             targetSlider.setValue(v);
             slider_hook(sliders.indexOf(targetSlider), v);
             save_values_to_cookie(); // Only save values during normal operation

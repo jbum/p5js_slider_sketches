@@ -1,4 +1,4 @@
-let values = [64,64,0,0,0,0,0,0];
+let values = [0,0,0,0,0,0,0,0];
 let button_values = [0, 0, 0, 0, 0, 0, 0, 0];
 
 let kWidth = 512;             // width of graphics
@@ -54,7 +54,7 @@ function draw() {
   // draw a series of 8 dots, representing the values of the sliders
   stroke(255);
   for (let i = 0; i < 8; i++) {
-    let x = map(values[i], 0, 127, 50, width-50);
+    let x = map(values[i], 0, 1, 50, width-50);
     let y = 20+i*50;
     let radius = 5;
     ellipse(x, y, radius, radius);

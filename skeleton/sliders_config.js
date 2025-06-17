@@ -1,12 +1,12 @@
 const sliders_cfg = [
-    { minVal: 0, maxVal: 127, defaultVal: 64, name: "Slider 1" },
-    { minVal: 0, maxVal: 127, defaultVal: 64, name: "Slider 2" },
-    { minVal: 0, maxVal: 127, defaultVal: 64, name: "Slider 3" },
-    { minVal: 0, maxVal: 127, defaultVal: 64, name: "Slider 4" },
-    { minVal: 0, maxVal: 127, defaultVal: 64, name: "Slider 5" },
-    { minVal: 0, maxVal: 127, defaultVal: 64, name: "Slider 6" },
-    { minVal: 0, maxVal: 127, defaultVal: 64, name: "Slider 7" },
-    { minVal: 0, maxVal: 127, defaultVal: 64, name: "Slider 8" }
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Slider 1" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Slider 2" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Slider 3" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Slider 4" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Slider 5" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Slider 6" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Slider 7" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Slider 8" }
 ];
 
 const buttons_cfg = [

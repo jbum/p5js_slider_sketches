@@ -15,7 +15,7 @@ const SLOT_WIDTH = 7;
 // 6: Monitor toggle (0/1)
 // 7: Extra - unused
 
-let values = [0, 64, 0, 0, 0, 0, 127, 0]; // Default slider values
+let values = [0, 0.5, 0, 0, 0, 0, 1, 0]; // Default slider values
 let button_values = [0, 0, 0, 0, 0, 0, 0, 0]; // Default button values
 
 let kWidth = 600;  // width of graphics
@@ -109,25 +109,25 @@ function toggle_sketch_size() {
 
 function updateFromSliders() {
   // Map slider values to simulation parameters
-  mode = floor(map(values[0], 0, 127, 0, 5));
-  rpm = map(values[1], 0, 127, 0, 3);
+  mode = floor(map(values[0], 0, 1, 0, 5));
+  rpm = map(values[1], 0, 1, 0, 3);
   
   // Only update these if they've changed
-  let newCplate = floor(map(values[2], 0, 127, 0, NBR_SHAPES));
-  let newGrille = floor(map(values[3], 0, 127, 0, NBR_SHAPES));
-  let newStripe = floor(map(values[4], 0, 127, 0, 3));
+  let newCplate = floor(map(values[2], 0, 1, 0, NBR_SHAPES));
+  let newGrille = floor(map(values[3], 0, 1, 0, NBR_SHAPES));
+  let newStripe = floor(map(values[4], 0, 1, 0, 3));
   
   // Preset selection
-  let newPreset = floor(map(values[5], 0, 127, 0, goodPresets.length-1));
+  let newPreset = floor(map(values[5], 0, 1, 0, goodPresets.length-1));
   if (newPreset !== lastPreset) {
     lastPreset = newPreset;
     [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
     updateDiscs();
     
     // Update sliders to match preset
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
-    values[4] = map(curStripe, 0, 2, 0, 127);
+    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
+    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
+    values[4] = map(curStripe, 0, 2, 0, 1);
   } else {
     // Check for individual parameter changes
     if (newCplate !== curCplate || newGrille !== curGrille || newStripe !== curStripe) {
@@ -182,34 +182,6 @@ function button_hook_process(index, value) {
   if (index == 0) {
     isMonitor = value > 0;
   }
-
-  // Handle button presses
-  // if (value > 64) {
-  //   // For example, buttons could change presets, toggle features, etc.
-  //   if (index === 0) {
-  //     // First button cycles through modes
-  //     mode = (mode + 1) % 5;
-  //     values[0] = map(mode, 0, 4, 0, 127);
-  //   } else if (index === 1) {
-  //     // Second button goes to previous preset
-  //     lastPreset = (lastPreset + goodPresets.length - 1) % goodPresets.length;
-  //     values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 127);
-  //     [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
-  //     updateDiscs();
-  //     values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
-  //     values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
-  //     values[4] = map(curStripe, 0, 2, 0, 127);
-  //   } else if (index === 2) {
-  //     // Third button goes to next preset
-  //     lastPreset = (lastPreset + 1) % goodPresets.length;
-  //     values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 127);
-  //     [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
-  //     updateDiscs();
-  //     values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
-  //     values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
-  //     values[4] = map(curStripe, 0, 2, 0, 127);
-  // }
-  // }
 }
 
 function draw() {
@@ -347,65 +319,65 @@ function keyPressed() {
   // Handle keyboard input (useful for testing)
   if (key === '0') {
     mode = 0;
-    values[0] = map(mode, 0, 4, 0, 127);
+    values[0] = map(mode, 0, 4, 0, 1);
   } else if (key === '1') {
     mode = 1;
-    values[0] = map(mode, 0, 4, 0, 127);
+    values[0] = map(mode, 0, 4, 0, 1);
   } else if (key === '2') {
     mode = 2;
-    values[0] = map(mode, 0, 4, 0, 127);
+    values[0] = map(mode, 0, 4, 0, 1);
   } else if (key === '3') {
     mode = 3;
-    values[0] = map(mode, 0, 4, 0, 127);
+    values[0] = map(mode, 0, 4, 0, 1);
   } else if (key === '4') {
     mode = 4;
-    values[0] = map(mode, 0, 4, 0, 127);
+    values[0] = map(mode, 0, 4, 0, 1);
   } else if (keyCode === LEFT_ARROW) {
     curGrille = max(0, curGrille - 1);
     grilleDisc = getGrille(curGrille);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
+    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
   } else if (keyCode === RIGHT_ARROW) {
     curGrille = (curGrille + 1) % NBR_SHAPES;
     grilleDisc = getGrille(curGrille);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
+    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
   } else if (key === '[') {
     curCplate = max(0, curCplate - 1);
     colorMask = getColorMask(curCplate, gelDisc);
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
+    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
   } else if (key === ']') {
     curCplate = (curCplate + 1) % NBR_SHAPES;
     colorMask = getColorMask(curCplate, gelDisc);
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
+    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
   } else if (key === '{') {
     curStripe = max(0, curStripe - 1);
     gelDisc = getColorGel(curStripe);
     colorMask = getColorMask(curCplate, gelDisc);
-    values[4] = map(curStripe, 0, 2, 0, 127);
+    values[4] = map(curStripe, 0, 2, 0, 1);
   } else if (key === '}') {
     curStripe = (curStripe + 1) % 3;
     gelDisc = getColorGel(curStripe);
     colorMask = getColorMask(curCplate, gelDisc);
-    values[4] = map(curStripe, 0, 2, 0, 127);
+    values[4] = map(curStripe, 0, 2, 0, 1);
   } else if (keyCode === UP_ARROW) {
     lastPreset = (lastPreset + 1) % goodPresets.length;
     [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
     gelDisc = getColorGel(curStripe);
     colorMask = getColorMask(curCplate, gelDisc);
     grilleDisc = getGrille(curGrille);
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
-    values[4] = map(curStripe, 0, 2, 0, 127);
-    values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 127);
+    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
+    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
+    values[4] = map(curStripe, 0, 2, 0, 1);
+    values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 1);
   } else if (keyCode === DOWN_ARROW) {
     lastPreset = (lastPreset + goodPresets.length - 1) % goodPresets.length;
     [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
     gelDisc = getColorGel(curStripe);
     colorMask = getColorMask(curCplate, gelDisc);
     grilleDisc = getGrille(curGrille);
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 127);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 127);
-    values[4] = map(curStripe, 0, 2, 0, 127);
-    values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 127);
+    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
+    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
+    values[4] = map(curStripe, 0, 2, 0, 1);
+    values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 1);
   } else if (key === 'm') {
     isMonitor = !isMonitor;
     button_values[0] = isMonitor;
