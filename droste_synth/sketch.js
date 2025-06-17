@@ -183,16 +183,23 @@ function button_hook_process(index, value) {
     let rIdx = index;
     if (value) {
       recursions[rIdx].isOn = true;
-      recursions[rIdx].isTweaking = true;
     }
     else {
       recursions[rIdx].isOn = false;
+    }
+  } else if (index >= 4 && index < 8) {
+    let rIdx = index - 4;
+    if (value) {
+      recursions[rIdx].isTweaking = true;
+    }
+    else {
       recursions[rIdx].isTweaking = false;
     }
+
   }
-  if (index == 4) {
-    useMask = value > 0;
-  }
+  // if (index == 4) {
+  //   useMask = value > 0;
+  // }
 }
 
 function draw() {
