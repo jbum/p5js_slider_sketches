@@ -182,7 +182,8 @@ function empty_slider_queue() {
 function slider_hook_process(slider_index, value) {
   switch (slider_index) {
     case 0: // speed
-      gSpeed = map(value, 0, 1, minSpeed, maxSpeed);
+      let easedValue = (value * value) * (value < 0? -1 : 1);
+      gSpeed = map(easedValue, -1, 1, minSpeed, maxSpeed);
       // saveVars()
       break;
     case 1:

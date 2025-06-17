@@ -1,5 +1,5 @@
 const sliders_cfg = [
-    { minVal: 0, maxVal: 1, defaultVal: 0.488, name: "speed" },
+    { minVal: -1, maxVal: 1, defaultVal: 0.23, name: "speed" },
     { minVal: 0, maxVal: 1, defaultVal: 0.598, name: "#dots" },
     { minVal: 0, maxVal: 1, defaultVal: 0.181, name: "blur amt" },
     { minVal: 0, maxVal: 1, defaultVal: 0.165, name: "trail alpha" },
