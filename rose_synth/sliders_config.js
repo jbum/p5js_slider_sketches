@@ -1,12 +1,12 @@
 const sliders_cfg = [
-    { minVal: 0, maxVal: 127, defaultVal: 62, name: "speed" },
-    { minVal: 0, maxVal: 127, defaultVal: 76, name: "#dots" },
-    { minVal: 0, maxVal: 127, defaultVal: 23, name: "blur amt" },
-    { minVal: 0, maxVal: 127, defaultVal: 21, name: "trail alpha" },
-    { minVal: 0, maxVal: 127, defaultVal: 2, name: "Slider 5" },
-    { minVal: 0, maxVal: 127, defaultVal: 0, name: "Slider 6" },
-    { minVal: 0, maxVal: 127, defaultVal: 0, name: "Slider 7" },
-    { minVal: 0, maxVal: 127, defaultVal: 64, name: "damp" }
+    { minVal: 0, maxVal: 1, defaultVal: 0.488, name: "speed" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.598, name: "#dots" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.181, name: "blur amt" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.165, name: "trail alpha" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.016, name: "Slider 5" },
+    { minVal: 0, maxVal: 1, defaultVal: 0, name: "Slider 6" },
+    { minVal: 0, maxVal: 1, defaultVal: 0, name: "Slider 7" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.504, name: "damp" }
 ];
 
 const buttons_cfg = [

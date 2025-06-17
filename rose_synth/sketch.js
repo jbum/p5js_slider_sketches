@@ -182,21 +182,21 @@ function empty_slider_queue() {
 function slider_hook_process(slider_index, value) {
   switch (slider_index) {
     case 0: // speed
-      gSpeed = map(value, 0, 127, minSpeed, maxSpeed);
+      gSpeed = map(value, 0, 1, minSpeed, maxSpeed);
       // saveVars()
       break;
     case 1:
-      let v = value / 127.0;
+      let v = value ;
       nbrPoints = int(map(v * v, 0, 1, minPoints, maxPoints));
       lowestNoteNumber = midNoteNumber - nbrPoints / 2;
       console.log("nbrPoints " + nbrPoints);
       // saveVars()
       break;
     case 2:
-      blur_amount = map(value, 0, 127, 0, 10);
+      blur_amount = map(value, 0, 1, 0, 10);
       break;
     case 3:
-      let fValue = value / 127.0;
+      let fValue = value;
       fValue = fValue * fValue;
       trail_alpha = fValue;
       // console.log("trail_alpha " + trail_alpha);
@@ -205,7 +205,7 @@ function slider_hook_process(slider_index, value) {
       // sendKnob(7, value);
       break;
     case 7:
-      gDamp = map(value, 0, 127, minDamp, maxDamp);
+      gDamp = map(value, 0, 1, minDamp, maxDamp);
       // saveVars()
       break;
   }
