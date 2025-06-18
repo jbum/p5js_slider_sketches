@@ -3,6 +3,13 @@ html, body {
   padding: 0;
 }
 
+@font-face {
+  font-family: 'LadylikeBB';
+  src: url('https://files.krazydad.com/assets/LadylikeBB.woff') format('woff');
+  font-style: normal;
+  font-weight: normal;
+  text-rendering: optimizeLegibility;
+}
 canvas#sketch-canvas {
   display: block;
   margin: 0 auto;

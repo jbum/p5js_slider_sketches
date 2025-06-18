@@ -208,7 +208,7 @@ function draw() {
 
   let ang = frameCount * 0.3;
   noStroke();
-  background(0);
+  background(0,0,0,64);
 
   push();
   console.log("drawing");
@@ -219,6 +219,7 @@ function draw() {
   rect(0, 0, width, height);
   fill(ctr % 2 === 0 ? 0 : 255);
   triangle(0, 0, width, height, width, 0);
+  // filter(BLUR, 10);
   fill(0);
   // return;
 

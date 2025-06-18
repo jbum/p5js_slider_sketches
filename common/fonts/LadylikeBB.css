@@ -1,0 +1,12 @@
+/* Webfont: LadylikeBB */@font-face {
+    font-family: 'LadylikeBB';
+    src: url('LadylikeBB.eot'); /* IE9 Compat Modes */
+    src: url('LadylikeBB.eot?#iefix') format('embedded-opentype'), /* IE6-IE8 */
+         url('LadylikeBB.woff') format('woff'), /* Modern Browsers */
+         url('LadylikeBB.ttf') format('truetype'), /* Safari, Android, iOS */
+         url('LadylikeBB.svg#LadylikeBB') format('svg'); /* Legacy iOS */
+    font-style: normal;
+    font-weight: normal;
+    text-rendering: optimizeLegibility;
+}
+

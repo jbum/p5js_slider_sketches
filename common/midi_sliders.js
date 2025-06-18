@@ -101,7 +101,7 @@ class Button {
       // Draw button name
       
         ctx.save();
-        ctx.font = '10px Helvetica';
+        ctx.font = '16px LadylikeBB';
         ctx.fillStyle = '#AAAAAA';
         ctx.textAlign = 'center';
         ctx.fillText(this.b_config.name, this.x + this.width/2, this.y + this.height + 12);
@@ -188,7 +188,7 @@ class Slider {
 
         // Draw slider name
         ctx.save();
-        ctx.font = '10px Helvetica';
+        ctx.font = '16px LadylikeBB';
         ctx.fillStyle = '#AAAAAA';
         ctx.textAlign = 'center';
         ctx.fillText(this.s_config.name, this.x + this.width/2, this.y + this.height + 12);

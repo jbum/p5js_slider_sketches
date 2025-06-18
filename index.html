@@ -7,15 +7,22 @@
     <link rel="shortcut icon" href="/common/favicon.ico" />
     <style>
       body {
-        font-family: Arial, sans-serif;
         max-width: 800px;
         margin: 0 auto;
         padding: 20px;
-        background-color: #f5f5f5;
+        background-color: #2d5016;
+        color: #f4f1bb;
+        font-family: LadylikeBB, helvetica, sans-serif;
+      }
+      @font-face {
+        font-family: "LadylikeBB";
+        src: url("/common/fonts/LadylikeBB.woff") format("woff");
+        font-style: normal;
+        font-weight: normal;
+        text-rendering: optimizeLegibility;
       }
       h1 {
-        color: #333;
-        text-align: center;
+        color: #f4f1bb;
       }
       .project-list {
         display: flex;
@@ -24,18 +31,10 @@
         margin-top: 30px;
       }
       .project-item {
-        background-color: white;
-        border-radius: 8px;
-        padding: 20px;
-        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        transition: transform 0.2s ease;
-      }
-      .project-item:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        padding: 0.5rem;
       }
       .project-item a {
-        color: #2a6fc9;
+        color: #f4f1bb;
         text-decoration: none;
         font-size: 1.2rem;
         font-weight: bold;
@@ -45,7 +44,7 @@
       }
       .project-item p {
         margin-top: 8px;
-        color: #666;
+        color: #f4f1bb;
       }
     </style>
   </head>
@@ -55,17 +54,22 @@
     <div class="project-list">
       <div class="project-item">
         <a href="/droste_synth/">Droste Synth</a>
-        <p>Interactive droste pattern synthesizer with MIDI control.</p>
+        <p>Interactive droste pattern generation with multiple attractors.</p>
+      </div>
+
+      <div class="project-item">
+        <a href="/rose_kaleidoscope/">Rose Kaleidoscope</a>
+        <p>Interactive rose kaleidoscope with adjustable mirrors.</p>
       </div>
 
       <div class="project-item">
         <a href="/rose_synth/">Rose Synth</a>
-        <p>Interactive rose pattern synthesizer with MIDI control.</p>
+        <p>Generative music based on the Rose equation / incremental drift.</p>
       </div>
 
       <div class="project-item">
-        <a href="/rotating_animation_box/">Rotating Animation Box</a>
-        <p>Animated rotation effects with WebGL shaders.</p>
+        <a href="/rotating_animation_box/">Interference patterns</a>
+        <p>Simple interference patterns.</p>
       </div>
 
       <div class="project-item">
