@@ -14,7 +14,7 @@ let adjustedMirrorRadians = 0;
 let objectCellHeight = 0; 
 let objectCellWidth = 0;
 
-let objectCell;
+let objectCell, compositeCell;
 // let wedgePG; no longer used
 
 let usesMirrors = true;
@@ -26,6 +26,7 @@ let kDarkenAmount = 164;
 let kSpeed = 0.00005;
 let kWedgeFeedback = false;
 let kUseRecursion = false;
+let kRecursionLevels = 0;
 let rStart;
 
 function SetupMirror() {
@@ -44,20 +45,20 @@ function SetupMirror() {
 function myMask() {
   let ox = 0, oy = 0;  // objectCell.height/2;
   let adjustedAngle = adjustedMirrorRadians; // helps reduce seams by adding a pixel to the outer angle
-  beginShape();
-  vertex(ox,oy);
+  compositeCell.beginShape();
+  compositeCell.vertex(ox,oy);
   let beginAngle = -adjustedAngle / 2;
   let nbrDivs = 10;
   for (let i = 0; i <= nbrDivs; ++i) {
     let amt = i / nbrDivs;
-    vertex(ox+cos(beginAngle+adjustedAngle*amt)*scopeRadius, oy+sin(beginAngle+adjustedAngle*amt)*scopeRadius);
+    compositeCell.vertex(ox+cos(beginAngle+adjustedAngle*amt)*scopeRadius, oy+sin(beginAngle+adjustedAngle*amt)*scopeRadius);
 
   }
   // curveVertex(scopeRadius, 0);
   // curveVertex(cos(mirrorRadians*.5)*scopeRadius, sin(mirrorRadians*.5)*scopeRadius);
   // curveVertex(cos(mirrorRadians)*scopeRadius, sin(mirrorRadians)*scopeRadius);
   // curveVertex(cos(mirrorRadians)*scopeRadius, sin(mirrorRadians)*scopeRadius);
-  endShape(CLOSE);
+  compositeCell.endShape(CLOSE);
 }
 
 function SetupCell() {
@@ -76,7 +77,7 @@ function DrawCell(oc) {
   oc.noStroke();
 
   let n = millis() * kSpeed + rStart;
-  let rad = objectCellWidth * 0.97 / 2;
+  let rad = objectCellWidth / 2 - kDotRadius;
   let cx = objectCellWidth / 2;
   let cy = objectCellHeight / 2;
   oc.push();
@@ -103,6 +104,7 @@ function DrawCell(oc) {
 function setup() {
   let min_window_dimension = Math.min(windowWidth, windowHeight);
   myCanvas = createCanvas(kWidth, kWidth, document.getElementById('sketch-canvas'));
+  compositeCell = createGraphics(kWidth, kWidth);
   background(0);
   ellipseMode(RADIUS);
   SetupMirror();
@@ -147,6 +149,9 @@ function slider_hook_process(slider_index, value) {
     case 5:
       kSpeed = map(value, 0, 1, 0.00001, 0.0001);
       break;
+    case 6:
+      kRecursionLevels = int(map(value, 0, 1, 0, 6));
+      break;
     case 7:
       rStart = map(value,0,1,30,60);
       break;
@@ -182,11 +187,31 @@ function button_hook_process(index, value) {
   }
 }
 
+function applyMirrors()
+{
+  for (let i = 0; i < nbrSides; ++i) {
+    // for each reflection
+    compositeCell.push();
+    compositeCell.rotate(mirrorRadians * i * 2);
+    compositeCell.push();
+    compositeCell.clip(myMask);
+    compositeCell.image(objectCell, 0, -objectCell.height/2);
+    compositeCell.pop();
+    compositeCell.rotate(mirrorRadians);
+    compositeCell.scale(1, -1);
+    compositeCell.push();
+    compositeCell.clip(myMask);
+    compositeCell.image(objectCell, 0, -objectCell.height/2);
+    compositeCell.pop();
+    compositeCell.pop();
+  }
+
+}
+
 function draw() {
   empty_slider_queue();
   empty_button_queue();
 
-  background(0);
   DrawCell(objectCell);
 
   if (usesMirrors) {
@@ -194,39 +219,36 @@ function draw() {
     // objectCell.clip(wedgePG);
   }
 
-  push();
-    translate(width/2, height/2);
-    rotate(millis() * 0.00005);    // rotating of scope as a whole
-    if (usesMirrors) {
-      for (let i = 0; i < nbrSides; ++i) {
-        // for each reflection
-        push();
-        rotate(mirrorRadians * i * 2);
-        push();
-        clip(myMask);
-        image(objectCell, 0, -objectCell.height/2);
-        pop();
-        rotate(mirrorRadians);
-        scale(1, -1);
-        push();
-        clip(myMask);
-        image(objectCell, 0, -objectCell.height/2);
-        pop();
-        pop();
-      }
-    } else {
-      push();
-      image(objectCell, 0, -objectCell.height/2);
-      pop();
-    }
-  if (kWedgeFeedback) {
-    push();
-    // translate(10, 154);
-    fill(0, 0, 255, 128);
-    noStroke();
-    myMask();
-    pop();
+  compositeCell.background(0);
+  compositeCell.push();
+  compositeCell.translate(width/2, height/2);
+  // compositeCell.rotate(millis() * 0.00005);    // rotating of scope as a whole
+      // for each reflection
+  applyMirrors();
+  for (let i = 0; i < kRecursionLevels; ++i) {
+    objectCell.image(compositeCell, objectCell.width/2 - kWidth/3, objectCell.height/2 - kHeight/3, kWidth*.66, kHeight*.66);
+    applyMirrors();
   }
+
+  if (!usesMirrors) {
+    compositeCell.background(0);
+    compositeCell.image(objectCell, 0, -objectCell.height/2);
+  }
+
+  if (kWedgeFeedback) {
+    compositeCell.push();
+    // compositeCell.translate(10, 154);
+    compositeCell.fill(0, 0, 255, 128);
+    compositeCell.noStroke();
+    myMask();
+    compositeCell.pop();
+  }
+  compositeCell.pop();
+  push();
+  background(0);
+  translate(width/2, height/2);
+  rotate(millis() * 0.00005);    // rotating of scope as a whole
+  image(compositeCell, -kWidth/2, -kHeight/2);
   pop();
 }
 
