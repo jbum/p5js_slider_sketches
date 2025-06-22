@@ -7,6 +7,19 @@ let lastRefreshTime = 0;
 let animationFrameId = null;
 let midi_mappings_cookie_name = "midi_mappings"; // Global cookie for MIDI mappings
 let sliders_are_hidden = false;
+let slider_bank = 0;
+
+// novation launch control specific colors
+const LC_COLOR_OFF = 0x0C;
+const LC_COLOR_RED_LO = 0x0D;
+const LC_COLOR_RED_HI = 0x0F;
+const LC_COLOR_AMB_LO = 0x1D;
+const LC_COLOR_AMB_HI = 0x3F;
+const LC_COLOR_YEL_HI = 0x3E;
+const LC_COLOR_GRN_LO = 0x1C;
+const LC_COLOR_GRN_HI = 0x3C;
+const lc_button_colors = [LC_COLOR_OFF, LC_COLOR_GRN_LO, LC_COLOR_RED_LO, LC_COLOR_AMB_LO];
+const lc_draw_colors = ['none', 'rgba(0,255,0,0.5)', 'rgba(255,0,0,0.5)', 'rgba(255,255,0,0.5)'];
 
 function toggle_slider_visibility() {
   sliders_are_hidden = !sliders_are_hidden;
@@ -62,16 +75,18 @@ function myMapConstrain(v, min, max, out_min, out_max) {
 
 
 class Button {
-    constructor(b_config, idx, x, y, width = 40, height = 40) {
+    constructor(b_config, idx, x, y, width = 40, height = 40, nbr_states = 2) {
         this.idx = idx;
         this.x = x;
         this.y = y;
+        this.nbr_states = nbr_states;
         this.width = width;
         this.height = height;
         this.value = b_config.defaultVal;
         this.noteNumber = idx < 4? 9 + idx : 25 + (idx-4);
         this.isLearning = false;
         this.b_config = b_config;
+        this.set_slider_bank = b_config.set_slider_bank === true;
     }
 
     render(ctx) {
@@ -92,6 +107,11 @@ class Button {
         ctx.quadraticCurveTo(this.x, this.y, this.x + radius, this.y);
         ctx.closePath();
         ctx.fill();
+      
+        if (this.value) {
+          ctx.fillStyle = lc_draw_colors[this.value];
+          ctx.fill();
+        }
 
         if (this.isLearning) {
             ctx.fillStyle = 'rgba(0,255,0,0.5)';
@@ -124,18 +144,16 @@ class Button {
                 }
             }
             refreshCanvas();
-            return false;
         }
 
-        this.value = !this.value;
-        if (this.value) {
-            button_hook(buttons.indexOf(this), 1);
-            sendNoteOn(this.noteNumber, 0x1C);
-        } else {
-            button_hook(buttons.indexOf(this), 0);
-            sendNoteOn(this.noteNumber, 0x0C);
-        }
-        return true;
+      this.value = (this.value + 1) % this.nbr_states;
+      if (this.set_slider_bank) {
+        slider_bank = this.value;
+        console.log("slider_bank", slider_bank);
+      }
+      button_hook(buttons.indexOf(this), this.value);
+      sendNoteOn(this.noteNumber, lc_button_colors[this.value]);
+      console.log("button_idx", this.idx, "value", this.value);
     }
 
     setNoteNumber(note) {
@@ -349,8 +367,12 @@ function read_slider_values_from_cookie() {
         if (valuesData.buttonStates && valuesData.buttonStates.length) {
           for (let i = 0; i < valuesData.buttonStates.length && i < buttons.length; ++i) {
             buttons[i].value = valuesData.buttonStates[i];
+            if (buttons[i].set_slider_bank) {
+              slider_bank = buttons[i].value;
+              console.log("slider_bank", slider_bank);
+            }
             button_hook(i, buttons[i].value);
-            sendNoteOn(buttons[i].noteNumber, buttons[i].value ? 0x1C : 0x0C);
+            sendNoteOn(buttons[i].noteNumber, lc_button_colors[buttons[i].value]);
           }
         }
       }
@@ -446,7 +468,7 @@ function onMIDIMessage(event) {
             // convert from MIDI value to slider value
             let v = myMapConstrain(data2, 0, 127, targetSlider.s_config.minVal, targetSlider.s_config.maxVal);
             targetSlider.setValue(v);
-            slider_hook(sliders.indexOf(targetSlider), v);
+            slider_hook(sliders.indexOf(targetSlider)+slider_bank*8, v);
             save_values_to_cookie(); // Only save values during normal operation
             refreshCanvas();
         }
@@ -466,14 +488,13 @@ function onMIDIMessage(event) {
         // Normal operation - find button by note number
         let targetButton = buttons.find(button => button.noteNumber === data1);
         if (targetButton && command == 0x90) {  // Only handle note-on messages
-            targetButton.value = !targetButton.value;  // Toggle the state
-            if (targetButton.value) {
-                button_hook(buttons.indexOf(targetButton), velocity);
-                sendNoteOn(targetButton.noteNumber, 0x1C);
-            } else {
-                button_hook(buttons.indexOf(targetButton), 0);
-                sendNoteOn(targetButton.noteNumber, 0x0C);
+            targetButton.value = (targetButton.value + 1) % targetButton.nbr_states;  // Toggle the state
+            if (targetButton.set_slider_bank) {
+              slider_bank = targetButton.value;
+              console.log("slider_bank", slider_bank);
             }
+            button_hook(buttons.indexOf(targetButton), targetButton.value);
+            sendNoteOn(targetButton.noteNumber, lc_button_colors[targetButton.value]);
             save_values_to_cookie(); // Only save values during normal operation
             refreshCanvas();
         }
@@ -565,7 +586,7 @@ function handleMouseDown(event) {
             activeSlider = slider;  // Set the active slider for dragging
             const wasLearningMode = isShiftDown;
             slider.handleMouseEvent(x, y, isShiftDown);
-            slider_hook(sliders.indexOf(slider), slider.value);
+            slider_hook(sliders.indexOf(slider)+slider_bank*8, slider.value);
             
             if (wasLearningMode) {
                 save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
@@ -588,7 +609,7 @@ function handleMouseMove(event) {
 
         const wasLearningMode = isShiftDown;
         activeSlider.handleMouseEvent(x, y, isShiftDown);
-        slider_hook(sliders.indexOf(activeSlider), activeSlider.value);
+        slider_hook(sliders.indexOf(activeSlider)+slider_bank*8, activeSlider.value);
         
         if (wasLearningMode) {
             save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
@@ -646,9 +667,11 @@ document.addEventListener('DOMContentLoaded', () => {
       for (let col = 0; col < 4; col++) {
         let button_idx = row * 4 + col;
         let b_config = buttons_cfg[button_idx];
+        let nbr_states = b_config.states || 2;
         let x = button_start_x + col * (button_size + button_spacing_x);
         let y = button_start_y + row * (button_size + button_spacing_y + 4);
-        buttons.push(new Button(b_config, button_idx, x, y, button_size, button_size));
+        console.log("button_idx", button_idx, "x", x, "y", y, "nbr_states", nbr_states);
+        buttons.push(new Button(b_config, button_idx, x, y, button_size, button_size, nbr_states));
         }
     }
     

@@ -10,12 +10,12 @@ const sliders_cfg = [
 ];
 
 const buttons_cfg = [
-    { defaultVal: false, name: "snd" },
-    { defaultVal: true, name:  "rose" },
-    { defaultVal: false, name: "rev" },
-    { defaultVal: false, name: "harm" },
-    { defaultVal: true,  name: "blur" },
-    { defaultVal: true,  name: "trails" },
-    { defaultVal: false, name: "b7" },
-    { defaultVal: false, name: "b8" }
+    { defaultVal: 0, name: "snd" },
+    { defaultVal: 1, name:  "rose" },
+    { defaultVal: 0, name: "rev" },
+    { defaultVal: 0, name: "harm" },
+    { defaultVal: 1,  name: "blur" },
+    { defaultVal: 1,  name: "trails" },
+    { defaultVal: 0, name: "b7" },
+    { defaultVal: 0, name: "b8" }
 ]; 

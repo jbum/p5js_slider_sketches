@@ -6,16 +6,25 @@ const sliders_cfg = [
     { minVal: 0, maxVal: 1, defaultVal: 0.558, name: "darken amt" },
     { minVal: 0, maxVal: 1, defaultVal: 0.152, name: "speed" },
     { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "feedback levels" },
-    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "phase" }
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "phase" },
+
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "recurse scale" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "angle offset" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "unused" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "unused" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "unused" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "unused" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "unused" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "unused" }
 ];
 
 const buttons_cfg = [
-    { defaultVal: true, name: "mirror" },
-    { defaultVal: false, name: "unused" },
-    { defaultVal: false, name: "wedge" },
-    { defaultVal: false, name: "b4" },
-    { defaultVal: false, name: "b5" },
-    { defaultVal: false, name: "b6" },
-    { defaultVal: false, name: "b7" },
-    { defaultVal: false, name: "b8" }
+    { defaultVal: 1, name: "mirror" },
+    { defaultVal: 0, name: "unused" },
+    { defaultVal: 0, name: "wedge" },
+    { defaultVal: 0, name: "b4" },
+    { defaultVal: 0, name: "b5" },
+    { defaultVal: 0, name: "b6" },
+    { defaultVal: 0, name: "b7" },
+    { defaultVal: 0, name: "sbank", states:2, set_slider_bank: true }
 ]; 

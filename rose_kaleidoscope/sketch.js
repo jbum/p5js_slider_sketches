@@ -27,16 +27,18 @@ let kSpeed = 0.00005;
 let kWedgeFeedback = false;
 let kUseRecursion = false;
 let kRecursionLevels = 0;
+let kRecursionScale = 0.66;
 let rStart;
+const oc_padding = 4;
 
 function SetupMirror() {
   mirrorRadians = 2 * PI / (nbrSides * 2);
-  let pixelAngle = 1 / scopeRadius;
+  let pixelAngle = 1 / scopeRadius; // helps reduce visible seams by overlapping aliased edges
   adjustedMirrorRadians = mirrorRadians + pixelAngle*2;
   console.log("mirrorRadians", mirrorRadians, "adjustedMirrorRadians", adjustedMirrorRadians);
 
-  objectCellWidth = scopeRadius;
-  objectCellHeight = ceil(sin(adjustedMirrorRadians/2)*scopeRadius) * 2;
+  objectCellWidth = scopeRadius+oc_padding*2;
+  objectCellHeight = ceil(sin(adjustedMirrorRadians/2)*scopeRadius) * 2+oc_padding*2;
   objectCell = createGraphics(objectCellWidth, objectCellHeight);
  
     // wedgePG.endDraw();
@@ -81,7 +83,7 @@ function DrawCell(oc) {
   let cx = objectCellWidth / 2;
   let cy = objectCellHeight / 2;
   oc.push();
-  oc.translate(0, objectCellHeight/2);
+  oc.translate(10, objectCellHeight/2);
   for (let i = 0; i <= kNbrDots; ++i) {
     let theta = i * PI * 2 / kNbrDots;
     let myHue = n + theta / 2;
@@ -130,7 +132,8 @@ function slider_hook_process(slider_index, value) {
   console.log("slider revieved ", slider_index, "value", value);
   switch (slider_index) {
     case 0:
-      nbrSides = int(map(value, 0, 1, 3, 25));
+      let v = value * value;
+      nbrSides = int(map(v, 0, 1, 3, 23));
       console.log("nbr sides = ", nbrSides)
       SetupMirror();
       break;
@@ -154,6 +157,9 @@ function slider_hook_process(slider_index, value) {
       break;
     case 7:
       rStart = map(value,0,1,30,60);
+      break;
+    case 8:
+      kRecursionScale = map(value, 0, 1, 0.1, 0.9);
       break;
   }
 }
@@ -195,13 +201,13 @@ function applyMirrors()
     compositeCell.rotate(mirrorRadians * i * 2);
     compositeCell.push();
     compositeCell.clip(myMask);
-    compositeCell.image(objectCell, 0, -objectCell.height/2);
+    compositeCell.image(objectCell, -oc_padding, -objectCell.height/2);
     compositeCell.pop();
     compositeCell.rotate(mirrorRadians);
     compositeCell.scale(1, -1);
     compositeCell.push();
     compositeCell.clip(myMask);
-    compositeCell.image(objectCell, 0, -objectCell.height/2);
+    compositeCell.image(objectCell, -oc_padding, -objectCell.height/2);
     compositeCell.pop();
     compositeCell.pop();
   }
@@ -226,13 +232,14 @@ function draw() {
       // for each reflection
   applyMirrors();
   for (let i = 0; i < kRecursionLevels; ++i) {
-    objectCell.image(compositeCell, objectCell.width/2 - kWidth/3, objectCell.height/2 - kHeight/3, kWidth*.66, kHeight*.66);
+    objectCell.image(compositeCell, objectCell.width / 2 - kWidth*kRecursionScale/2, objectCell.height / 2 - kHeight*kRecursionScale/2,
+                                    kWidth * kRecursionScale, kHeight * kRecursionScale);
     applyMirrors();
   }
 
   if (!usesMirrors) {
     compositeCell.background(0);
-    compositeCell.image(objectCell, 0, -objectCell.height/2);
+    compositeCell.image(objectCell, -oc_padding, -objectCell.height/2);
   }
 
   if (kWedgeFeedback) {
