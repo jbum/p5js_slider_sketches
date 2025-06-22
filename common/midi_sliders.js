@@ -1,6 +1,6 @@
 let midi = null; // global MIDIAccess object
 let midiOutput = null; // global MIDI output port
-let nbr_sliders = 8;
+let nbr_sliders = sliders_cfg.length;
 let sliders = [];
 let buttons = [];
 let lastRefreshTime = 0;
@@ -8,6 +8,13 @@ let animationFrameId = null;
 let midi_mappings_cookie_name = "midi_mappings"; // Global cookie for MIDI mappings
 let sliders_are_hidden = false;
 let slider_bank = 0;
+const sliders_per_bank = 8;
+let nbr_slider_banks = 1 + Math.floor((sliders_cfg.length - 1) / sliders_per_bank);
+
+const max_visible_sliders = 8;
+const kDefaultControlStart = 0x15;
+let slider_controlNumbers = [kDefaultControlStart, kDefaultControlStart + 1, kDefaultControlStart + 2, kDefaultControlStart + 3,
+                      kDefaultControlStart+4, kDefaultControlStart + 5, kDefaultControlStart + 6, kDefaultControlStart + 7];
 
 // novation launch control specific colors
 const LC_COLOR_OFF = 0x0C;
@@ -134,21 +141,23 @@ class Button {
     }
 
     handleMouseEvent(x, y, isShiftDown) {
-        if (isShiftDown) {
-            // Enter learning mode
-            this.isLearning = true;
-            // Turn off learning mode for all other buttons
-            for (let button of buttons) {
-                if (button !== this) {
-                    button.isLearning = false;
-                }
+      if (isShiftDown) {
+        // Enter learning mode
+        this.isLearning = true;
+        // Turn off learning mode for all other buttons
+        for (let button of buttons) {
+            if (button !== this) {
+                button.isLearning = false;
             }
-            refreshCanvas();
         }
+        refreshCanvas();
+        return;
+      }
 
       this.value = (this.value + 1) % this.nbr_states;
       if (this.set_slider_bank) {
         slider_bank = this.value;
+        refreshCanvas();
         console.log("slider_bank", slider_bank);
       }
       button_hook(buttons.indexOf(this), this.value);
@@ -166,51 +175,55 @@ class Slider {
     static kAdjustFade = 2000; // milliseconds
     static kDefaultControlStart = 0x15;
 
-    constructor(s_config, idx, x, y, width = 128, height = 10, index = 0) {
-        this.idx = idx;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.value = s_config.defaultVal;
-        this.lastAdjusted = new Date();
-        this.controlNumber = Slider.kDefaultControlStart + index;
-        this.isLearning = false;
-        this.s_config = s_config;
+    constructor(s_config, idx, x, y, bank=0, width = 128, height = 10, index = 0) {
+      this.idx = idx;
+      this.x = x;
+      this.y = y;
+      this.width = width;
+      this.height = height;
+      this.value = s_config.defaultVal;
+      this.lastAdjusted = new Date();
+      // this.controlNumber = Slider.kDefaultControlStart + index;
+      this.isLearning = false;
+      this.s_config = s_config;
+      this.bank = bank;
     }
 
     render(ctx) {
-        // Draw slider background with rounded caps
-        ctx.fillStyle = '#444444';
-        // Draw the main bar
-        ctx.fillRect(this.x, this.y, this.width, this.height);
-        // Draw rounded caps
-        ctx.beginPath();
-        ctx.arc(this.x, this.y + this.height/2, this.height/2, 0, 2 * Math.PI);
-        ctx.arc(this.x + this.width, this.y + this.height/2, this.height/2, 0, 2 * Math.PI);
-        ctx.fill();
-        
-        // Calculate fade based on time since adjustment
-        let timeSince = this.timeSinceAdjusted();
-        let alpha = Math.max(0.55, 1.0 - (timeSince / Slider.kAdjustFade));
-        
-        // Draw slider thumb with fade effect
-        if (this.isLearning) {
-            ctx.fillStyle = `rgba(0,255,0,${alpha})`; // Green for learning mode
-        } else {
-            ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-        }
-        ctx.beginPath();
-        ctx.ellipse(this.x + myMapConstrain(this.value, this.s_config.minVal, this.s_config.maxVal, 0, this.width), this.y + this.height/2, 8, 8, 0, 0, 2 * Math.PI);
-        ctx.fill();
+      if (this.bank != slider_bank) {
+        return;
+      }
+      // Draw slider background with rounded caps
+      ctx.fillStyle = '#444444';
+      // Draw the main bar
+      ctx.fillRect(this.x, this.y, this.width, this.height);
+      // Draw rounded caps
+      ctx.beginPath();
+      ctx.arc(this.x, this.y + this.height/2, this.height/2, 0, 2 * Math.PI);
+      ctx.arc(this.x + this.width, this.y + this.height/2, this.height/2, 0, 2 * Math.PI);
+      ctx.fill();
+      
+      // Calculate fade based on time since adjustment
+      let timeSince = this.timeSinceAdjusted();
+      let alpha = Math.max(0.55, 1.0 - (timeSince / Slider.kAdjustFade));
+      
+      // Draw slider thumb with fade effect
+      if (this.isLearning) {
+          ctx.fillStyle = `rgba(0,255,0,${alpha})`; // Green for learning mode
+      } else {
+          ctx.fillStyle = `rgba(255,255,255,${alpha})`;
+      }
+      ctx.beginPath();
+      ctx.ellipse(this.x + myMapConstrain(this.value, this.s_config.minVal, this.s_config.maxVal, 0, this.width), this.y + this.height/2, 8, 8, 0, 0, 2 * Math.PI);
+      ctx.fill();
 
-        // Draw slider name
-        ctx.save();
-        ctx.font = '16px LadylikeBB';
-        ctx.fillStyle = '#AAAAAA';
-        ctx.textAlign = 'center';
-        ctx.fillText(this.s_config.name, this.x + this.width/2, this.y + this.height + 12);
-        ctx.restore();
+      // Draw slider name
+      ctx.save();
+      ctx.font = '16px LadylikeBB';
+      ctx.fillStyle = '#AAAAAA';
+      ctx.textAlign = 'center';
+      ctx.fillText(this.s_config.name, this.x + this.width/2, this.y + this.height + 12);
+      ctx.restore();
     }
 
     setValue(value) {
@@ -231,29 +244,32 @@ class Slider {
     }
 
     handleMouseEvent(x, y, isShiftDown) {
-        if (isShiftDown) {
-            // Enter learning mode
-            this.isLearning = true;
-            // Turn off learning mode for all other sliders
-            for (let slider of sliders) {
-                if (slider !== this) {
-                    slider.isLearning = false;
-                }
+      if (this.bank != slider_bank) {
+        return;
+      }
+      if (isShiftDown) {
+        // Enter learning mode
+        this.isLearning = true;
+        // Turn off learning mode for all other sliders
+        for (let slider of sliders) {
+            if (slider !== this) {
+                slider.isLearning = false;
             }
-            refreshCanvas();
-            return false; // Don't update value in learning mode
         }
+        refreshCanvas();
+        return; // Don't update value in learning mode
+      }
 
       // Convert mouse x to slider value
-        console.log("x", x, "this.x", this.x, "this.x + this.width", this.x + this.width);
-        let newValue = myMapConstrain(x, this.x, this.x + this.width, this.s_config.minVal, this.s_config.maxVal);
-        this.setValue(newValue);
-        return true;
+      console.log("x", x, "this.x", this.x, "this.x + this.width", this.x + this.width);
+      let newValue = myMapConstrain(x, this.x, this.x + this.width, this.s_config.minVal, this.s_config.maxVal);
+      this.setValue(newValue);
     }
 
     setControlNumber(controlNumber) {
-        this.controlNumber = controlNumber;
-        this.isLearning = false;
+      slider_controlNumbers[self.idx % max_visible_sliders] = controlNumber;
+      // this.controlNumber = controlNumber;
+      this.isLearning = false;
     }
 }
 
@@ -369,6 +385,7 @@ function read_slider_values_from_cookie() {
             buttons[i].value = valuesData.buttonStates[i];
             if (buttons[i].set_slider_bank) {
               slider_bank = buttons[i].value;
+              refreshCanvas();
               console.log("slider_bank", slider_bank);
             }
             button_hook(i, buttons[i].value);
@@ -405,19 +422,13 @@ function save_values_to_cookie() {
 // Save MIDI mappings to the global cookie
 function save_midi_mappings_to_cookie() {
   const data = {
-    controls: sliders.map(slider => slider.controlNumber),
+    controls: slider_controlNumbers,
     buttonNotes: buttons.map(button => button.noteNumber)
   };
   const mappingsStr = JSON.stringify(data);
   
   // Use root path for global cookie
   document.cookie = midi_mappings_cookie_name + "=" + mappingsStr + ";path=/";
-}
-
-// Backward compatibility function - saves to both cookies
-function save_slider_values_to_cookie() {
-  save_values_to_cookie();
-  save_midi_mappings_to_cookie();
 }
 
 function listInputsAndOutputs(midiAccess) {
@@ -448,64 +459,66 @@ function onMIDIMessage(event) {
     let data2 = event.data[2];
 
     if (command == 0xB0) {
-        // console.log("control change", channel, data1, data2);
-        
-        // Check for learning mode first
-        let learningSlider = sliders.find(slider => slider.isLearning);
-        if (learningSlider) {
-            learningSlider.setControlNumber(data1);
-            learningSlider.setValue(data2);
-            slider_hook(sliders.indexOf(learningSlider), data2);
-            save_midi_mappings_to_cookie(); // Only save MIDI mappings when learning
-            save_values_to_cookie();        // Also save the new value
-            refreshCanvas();
-            return;
-        }
+      // console.log("control change", channel, data1, data2);
+      
+      // Check for learning mode first
+      let learningSlider = sliders.find(slider => slider.isLearning);
+      if (learningSlider) {
+          learningSlider.setControlNumber(data1);
+          learningSlider.setValue(data2);
+          // slider_hook(sliders.indexOf(learningSlider), data2);
+          save_midi_mappings_to_cookie(); // Only save MIDI mappings when learning
+          save_values_to_cookie();        // Also save the new value
+          refreshCanvas();
+          return;
+      }
 
-        // Normal operation - find slider by control number
-        let targetSlider = sliders.find(slider => slider.controlNumber === data1);
+      // Normal operation - find slider by control number
+      let slider_idx = slider_controlNumbers.indexOf(data1);
+      let targetSlider = sliders.find(slider => slider.idx % max_visible_sliders === slider_idx && slider.bank == slider_bank);
+      console.log("slider tweak slider_idx, targetSlider", slider_idx, targetSlider);
       if (targetSlider) {
-            // convert from MIDI value to slider value
-            let v = myMapConstrain(data2, 0, 127, targetSlider.s_config.minVal, targetSlider.s_config.maxVal);
-            targetSlider.setValue(v);
-            slider_hook(sliders.indexOf(targetSlider)+slider_bank*8, v);
-            save_values_to_cookie(); // Only save values during normal operation
-            refreshCanvas();
-        }
+        // convert from MIDI value to slider value
+        let v = myMapConstrain(data2, 0, 127, targetSlider.s_config.minVal, targetSlider.s_config.maxVal);
+        targetSlider.setValue(v);
+        slider_hook(targetSlider.idx, v);
+        save_values_to_cookie(); // Only save values during normal operation
+        refreshCanvas();
+      }
     } else if (command == 0x90 || command == 0x80) {
-        // Handle both note-on and note-off
-        let velocity = command == 0x80 ? 0 : data2;
-        
-        // Check for learning mode first
-        let learningButton = buttons.find(button => button.isLearning);
-        if (learningButton) {
-            learningButton.setNoteNumber(data1);
-            save_midi_mappings_to_cookie(); // Only save MIDI mappings when learning
-            refreshCanvas();
-            return;
-        }
+      // Handle both note-on and note-off
+      let velocity = command == 0x80 ? 0 : data2;
+      
+      // Check for learning mode first
+      let learningButton = buttons.find(button => button.isLearning);
+      if (learningButton) {
+        learningButton.setNoteNumber(data1);
+        save_midi_mappings_to_cookie(); // Only save MIDI mappings when learning
+        refreshCanvas();
+        return;
+      }
 
-        // Normal operation - find button by note number
-        let targetButton = buttons.find(button => button.noteNumber === data1);
-        if (targetButton && command == 0x90) {  // Only handle note-on messages
-            targetButton.value = (targetButton.value + 1) % targetButton.nbr_states;  // Toggle the state
-            if (targetButton.set_slider_bank) {
-              slider_bank = targetButton.value;
-              console.log("slider_bank", slider_bank);
-            }
-            button_hook(buttons.indexOf(targetButton), targetButton.value);
-            sendNoteOn(targetButton.noteNumber, lc_button_colors[targetButton.value]);
-            save_values_to_cookie(); // Only save values during normal operation
-            refreshCanvas();
+      // Normal operation - find button by note number
+      let targetButton = buttons.find(button => button.noteNumber === data1);
+      if (targetButton && command == 0x90) {  // Only handle note-on messages
+        targetButton.value = (targetButton.value + 1) % targetButton.nbr_states;  // Toggle the state
+        if (targetButton.set_slider_bank) {
+          slider_bank = targetButton.value;
+          console.log("slider_bank", slider_bank);
         }
+        button_hook(buttons.indexOf(targetButton), targetButton.value);
+        sendNoteOn(targetButton.noteNumber, lc_button_colors[targetButton.value]);
+        save_values_to_cookie(); // Only save values during normal operation
+        refreshCanvas();
+      }
     } else if (command == 0xC0) {
-        console.log("program change", channel, data1);
+      console.log("program change", channel, data1);
     } else if (command == 0xD0) {
-        console.log("channel pressure", channel, data1);
+      console.log("channel pressure", channel, data1);
     } else if (command == 0xE0) {
-        console.log("pitch bend", channel, data1, data2);
+      console.log("pitch bend", channel, data1, data2);
     } else if (command == 0xF0) {
-        console.log("sysex", channel, data1, data2);
+      console.log("sysex", channel, data1, data2);
     }
 }
   
@@ -532,7 +545,7 @@ function refreshCanvas() {
     }
     
     // Render all sliders
-    for (let slider of sliders) {
+  for (let slider of sliders) {
         slider.render(myDC);
     }
 
@@ -582,12 +595,13 @@ function handleMouseDown(event) {
 
     // Then check sliders
     for (let slider of sliders) {
-        if (slider.isPointInThumb(x, y)) {
-            activeSlider = slider;  // Set the active slider for dragging
+        if (slider.bank == slider_bank && slider.isPointInThumb(x, y)) {
+          activeSlider = slider;  // Set the active slider for dragging
+          console.log("pressed active slider", activeSlider);
             const wasLearningMode = isShiftDown;
             slider.handleMouseEvent(x, y, isShiftDown);
-            slider_hook(sliders.indexOf(slider)+slider_bank*8, slider.value);
-            
+            slider_hook(activeSlider.idx, slider.value);
+           
             if (wasLearningMode) {
                 save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
             } else {
@@ -609,7 +623,7 @@ function handleMouseMove(event) {
 
         const wasLearningMode = isShiftDown;
         activeSlider.handleMouseEvent(x, y, isShiftDown);
-        slider_hook(sliders.indexOf(activeSlider)+slider_bank*8, activeSlider.value);
+        slider_hook(activeSlider.idx, activeSlider.value);
         
         if (wasLearningMode) {
             save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
@@ -626,58 +640,62 @@ function handleMouseUp() {
 }
 
 function sendNoteOn(note, velocity) {
-    if (midiOutput) {
-      // Note On message: 0x90 (note on) + channel 0
-        let sendMessage = [0x98, note, velocity];
-        console.log("Sending MIDI message:", sendMessage);
-        midiOutput.send(sendMessage);
-    }
+  if (midiOutput) {
+    // Note On message: 0x90 (note on) + channel 0
+    let sendMessage = [0x98, note, velocity];
+    console.log("Sending MIDI message:", sendMessage);
+    midiOutput.send(sendMessage);
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    let myCanvas = document.getElementById('sliders-canvas');
-    myCanvas.width = 150;
-    myCanvas.height = 500;
-    myDC = myCanvas.getContext('2d');
-    
-    // Add mouse event listeners
-    myCanvas.addEventListener('mousedown', handleMouseDown);
-    myCanvas.addEventListener('mousemove', handleMouseMove);
-    myCanvas.addEventListener('mouseup', handleMouseUp);
-    myCanvas.addEventListener('mouseleave', handleMouseUp);
-    
-    // Initialize sliders (moved up by 50 pixels)
-    let slider_x = (150-128)/2;
-    let slider_top_y = 10;  // Changed from 60 to 10
-    for (let i = 0; i < nbr_sliders; i++) {
-        let s_config = sliders_cfg[i];
-        sliders.push(new Slider(s_config, i, slider_x, i * 50 + slider_top_y));
-    }
+  let myCanvas = document.getElementById('sliders-canvas');
+  myCanvas.width = 150;
+  myCanvas.height = 500;
+  myDC = myCanvas.getContext('2d');
+  
+  // Add mouse event listeners
+  myCanvas.addEventListener('mousedown', handleMouseDown);
+  myCanvas.addEventListener('mousemove', handleMouseMove);
+  myCanvas.addEventListener('mouseup', handleMouseUp);
+  myCanvas.addEventListener('mouseleave', handleMouseUp);
+  
+  // Initialize sliders (moved up by 50 pixels)
+  let slider_x = (150-128)/2;
+  let slider_top_y = 10;  // Changed from 60 to 10
+  console.log("initialing # sliders", nbr_sliders);
+  for (let i = 0; i < nbr_sliders; i++) {
+    let s_config = sliders_cfg[i];
+    let bank = Math.floor(i / sliders_per_bank);
+    let slider_y = (i % sliders_per_bank) * 50 + slider_top_y;
+    console.log("slider_y i=", i, slider_y);
+    sliders.push(new Slider(s_config, i, slider_x, slider_y, bank));
+  }
 
-    // Initialize buttons (2 rows of 4)
-    let button_spacing_x = 8;
-    let button_spacing_y = 16;
-    
-    let button_size = 30;
-    let side_margin = 4;
-    let button_start_x = side_margin + (150 - side_margin * 2 - (4 * (button_size + button_spacing_x) - button_spacing_x)) / 2;
-    let button_start_y = 406;  // Position below sliders
+  // Initialize buttons (2 rows of 4)
+  let button_spacing_x = 8;
+  let button_spacing_y = 16;
+  
+  let button_size = 30;
+  let side_margin = 4;
+  let button_start_x = side_margin + (150 - side_margin * 2 - (4 * (button_size + button_spacing_x) - button_spacing_x)) / 2;
+  let button_start_y = 406;  // Position below sliders
 
-    for (let row = 0; row < 2; row++) {
-      for (let col = 0; col < 4; col++) {
-        let button_idx = row * 4 + col;
-        let b_config = buttons_cfg[button_idx];
-        let nbr_states = b_config.states || 2;
-        let x = button_start_x + col * (button_size + button_spacing_x);
-        let y = button_start_y + row * (button_size + button_spacing_y + 4);
-        console.log("button_idx", button_idx, "x", x, "y", y, "nbr_states", nbr_states);
-        buttons.push(new Button(b_config, button_idx, x, y, button_size, button_size, nbr_states));
-        }
-    }
-    
-    // Request MIDI access with both input and output permissions
-    navigator.requestMIDIAccess({ sysex: true, software: true }).then(onMIDISuccess, onMIDIFailure);
-    read_slider_values_from_cookie(); // This now reads both cookies
-    refreshCanvas();
+  for (let row = 0; row < 2; row++) {
+    for (let col = 0; col < 4; col++) {
+      let button_idx = row * 4 + col;
+      let b_config = buttons_cfg[button_idx];
+      let nbr_states = b_config.states || 2;
+      let x = button_start_x + col * (button_size + button_spacing_x);
+      let y = button_start_y + row * (button_size + button_spacing_y + 4);
+      console.log("button_idx", button_idx, "x", x, "y", y, "nbr_states", nbr_states);
+      buttons.push(new Button(b_config, button_idx, x, y, button_size, button_size, nbr_states));
+      }
+  }
+  
+  // Request MIDI access with both input and output permissions
+  navigator.requestMIDIAccess({ sysex: true, software: true }).then(onMIDISuccess, onMIDIFailure);
+  read_slider_values_from_cookie(); // This now reads both cookies
+  refreshCanvas();
 });
 
