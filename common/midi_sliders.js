@@ -351,6 +351,7 @@ function read_slider_values_from_cookie() {
   
   // Then read local project values
   const valuesCookieValue = getCookie(projectCookieName);
+
   if (valuesCookieValue) {
     try {
       const valuesData = JSON.parse(valuesCookieValue);
@@ -395,6 +396,16 @@ function read_slider_values_from_cookie() {
       }
     } catch (e) {
       console.error('Error parsing values cookie:', e);
+    }
+  } else {
+    // Initialize all sliders and buttons with their default values
+    for (let i = 0; i < sliders.length; ++i) {
+      slider_hook(i, sliders[i].value);
+    }
+    
+    for (let i = 0; i < buttons.length; ++i) {
+      button_hook(i, buttons[i].value);
+      sendNoteOn(buttons[i].noteNumber, lc_button_colors[buttons[i].value]);
     }
   }
 }
