@@ -1,3 +1,21 @@
+// SLIDERS
+//
+// I'm aware that p5.js has a built-in slider object, but I don't like making sliders part of the
+//  sketch - I wanted a single slider panel that I can reuse for all the projects.
+//
+// Each project has a slider_config.js file used to set the labels and ranges, and so on.
+//
+// This is NOT implemented in P5.js.  It could have been, but I wanted the actual sketch (that
+//  these sliders control) to function as a standalone sketch, and while p5.js supports multiple 
+// sketches, it is not pretty.  So this is implemented in basic javascript. This means that when
+//  it calls the slider_hook and button_hook functions within the controlled sketch, the p5.js
+//  context is not active.  So most of these sketches use queues to handle the slider/button
+//  events, so that the actual processing of the value changes can occur inside the p5.js context.
+//
+// If you have MIDI control working, you can use X to hide the sliders, and then control your
+//  sketch with your midi control surface without having to look at the sliders.
+//
+
 let midi = null; // global MIDIAccess object
 let midiOutput = null; // global MIDI output port
 let nbr_sliders = sliders_cfg.length;
@@ -17,6 +35,9 @@ let slider_controlNumbers = [kDefaultControlStart, kDefaultControlStart + 1, kDe
                       kDefaultControlStart+4, kDefaultControlStart + 5, kDefaultControlStart + 6, kDefaultControlStart + 7];
 
 // novation launch control specific colors
+// this is obviously too specific for my specific device.  But I wanted button feedback :)
+// this is why I don't do a ton of open-source software.  I don't have the time to make it work
+// for everybody else...
 const LC_COLOR_OFF = 0x0C;
 const LC_COLOR_RED_LO = 0x0D;
 const LC_COLOR_RED_HI = 0x0F;

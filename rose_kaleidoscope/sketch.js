@@ -1,4 +1,5 @@
-let values = [0,0,0,0,0,0,0,0];
+// these receive values from the external slider object
+let values = [0, 0, 0, 0, 0, 0, 0, 0];
 let button_values = [0, 0, 0, 0, 0, 0, 0, 0];
 
 let kWidth = 800;             // width of graphics
@@ -14,22 +15,25 @@ let adjustedMirrorRadians = 0;
 let objectCellHeight = 0; 
 let objectCellWidth = 0;
 
-let objectCell, compositeCell;
-// let wedgePG; no longer used
+let objectCell, // objectCell contains the things the kaleidoscope is looking at
+    compositeCell; // composite cell is used to contruct the kaleidoscope view -- only needed because of the recursion/feedback feature.
 
 let usesMirrors = true;
 
+// these vars control the particle animation in the object cell
 let kNbrDots = 512;
 let kDotRadius = 12;
 let kBlurAmt = 3;
 let kDarkenAmount = 164;
 let kSpeed = 0.00005;
+
+
 let kWedgeFeedback = false;
 let kUseRecursion = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
 let rStart;
-const oc_padding = 4;
+const oc_padding = 4; // object cell padding -- this helps reduce edge artifacts in the center and outer rim
 
 function SetupMirror() {
   mirrorRadians = 2 * PI / (nbrSides * 2);
@@ -44,6 +48,7 @@ function SetupMirror() {
     // wedgePG.endDraw();
 }
 
+// render the mirror shape - use the mirror button to see it
 function myMask() {
   let ox = 0, oy = 0;  // objectCell.height/2;
   let adjustedAngle = adjustedMirrorRadians; // helps reduce seams by adding a pixel to the outer angle
@@ -64,24 +69,17 @@ function myMask() {
 }
 
 function SetupCell() {
-  // rStart = 30 + random(60);
+  // unused
 }
 
 function DrawCell(oc) {
-  let tm = (millis() % 1000) / 1000.0;
-
-  // oc.beginDraw();
-  // oc.clear();
   oc.smooth();
+  // when kDarkenAmount is a lower value, this provides a trail effect
   oc.background(0, 0, 0, kDarkenAmount);
-  // oc.fill(0, 80, 0);
-  // oc.rect(0, 0, 500, 20);
   oc.noStroke();
 
   let n = millis() * kSpeed + rStart;
   let rad = objectCellWidth / 2 - kDotRadius;
-  let cx = objectCellWidth / 2;
-  let cy = objectCellHeight / 2;
   oc.push();
   oc.translate(10, objectCellHeight/2);
   for (let i = 0; i <= kNbrDots; ++i) {
@@ -98,6 +96,7 @@ function DrawCell(oc) {
     oc.ellipse(px, py, kDotRadius, kDotRadius);
   }
   oc.pop();
+  // this provides a blur effect
   oc.filter(BLUR, kBlurAmt);
   oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
   // oc.endDraw();
@@ -114,11 +113,13 @@ function setup() {
 
 }
 
+// we use a queue to manage incoming slider values, because slider_hook is not in p5.js context when called.
 let slider_queue = [];
 function slider_hook(slider_index, value) {
   slider_queue.push([slider_index, value]);
 }
 
+// this is called from our draw() function, and is in p5.js context
 function empty_slider_queue() {
   // first in, first out
   while (slider_queue.length > 0) {
@@ -127,6 +128,7 @@ function empty_slider_queue() {
   }
 }
 
+// process incoming slider changes
 function slider_hook_process(slider_index, value) {
   values[slider_index] = value;
   console.log("slider revieved ", slider_index, "value", value);
@@ -164,11 +166,13 @@ function slider_hook_process(slider_index, value) {
   }
 }
 
+// we use a queue to manage incoming button values, because button_hook is not in p5.js context when called.
 let button_queue = [];
 function button_hook(index, value) {
   button_queue.push([index, value]);
 }
 
+// this is called from our draw routine, and is in p5.js context
 function empty_button_queue() {
   // first in, first out
   while (button_queue.length > 0) {
@@ -177,6 +181,7 @@ function empty_button_queue() {
   }
 }
 
+// process incoming button presses
 function button_hook_process(index, value) {
   button_values[index] = value;
   console.log("button revieved ", index, "value", value);
@@ -193,16 +198,22 @@ function button_hook_process(index, value) {
   }
 }
 
+// copies wedges from the objectCell to the compositeCell in a 2-mirror kaleidoscope pattern
+// that rotates about the center
+//
+// alternate wedges are reflected by inverting the Y scaling
 function applyMirrors()
 {
   for (let i = 0; i < nbrSides; ++i) {
-    // for each reflection
+    // for each reflection, there are two wedges copied (a normal one, and a reflected one)
     compositeCell.push();
     compositeCell.rotate(mirrorRadians * i * 2);
     compositeCell.push();
     compositeCell.clip(myMask);
     compositeCell.image(objectCell, -oc_padding, -objectCell.height/2);
     compositeCell.pop();
+
+    // every other wedge is inverted (reflected)
     compositeCell.rotate(mirrorRadians);
     compositeCell.scale(1, -1);
     compositeCell.push();
@@ -215,22 +226,18 @@ function applyMirrors()
 }
 
 function draw() {
-  empty_slider_queue();
-  empty_button_queue();
+  empty_slider_queue(); // process incoming slider events
+  empty_button_queue(); // process incoming button events
 
-  DrawCell(objectCell);
+  DrawCell(objectCell); // draw object cell contents
 
-  if (usesMirrors) {
-    // objectCell.mask(wedgePG);
-    // objectCell.clip(wedgePG);
-  }
-
+  // begin rendering to composteCell
   compositeCell.background(0);
   compositeCell.push();
   compositeCell.translate(width/2, height/2);
-  // compositeCell.rotate(millis() * 0.00005);    // rotating of scope as a whole
-      // for each reflection
-  applyMirrors();
+  applyMirrors(); // copy the wedges from the object cell to the composite Cell
+
+  // apply feedback passes, if any
   for (let i = 0; i < kRecursionLevels; ++i) {
     objectCell.image(compositeCell, objectCell.width / 2 - kWidth*kRecursionScale/2, objectCell.height / 2 - kHeight*kRecursionScale/2,
                                     kWidth * kRecursionScale, kHeight * kRecursionScale);
@@ -238,11 +245,13 @@ function draw() {
   }
 
   if (!usesMirrors) {
+    // show the basic objectCell image, if we aren't using the mirrors
     compositeCell.background(0);
     compositeCell.image(objectCell, -oc_padding, -objectCell.height/2);
   }
 
   if (kWedgeFeedback) {
+    // show the wedge shape itself
     compositeCell.push();
     // compositeCell.translate(10, 154);
     compositeCell.fill(0, 0, 255, 128);
@@ -250,7 +259,9 @@ function draw() {
     myMask();
     compositeCell.pop();
   }
-  compositeCell.pop();
+  compositeCell.pop(); // finish drawing
+
+  // render compositeCell to screen, with rotation about the center
   push();
   background(0);
   translate(width/2, height/2);
