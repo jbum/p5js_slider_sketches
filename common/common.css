@@ -5,7 +5,7 @@ html, body {
 
 @font-face {
   font-family: 'LadylikeBB';
-  src: url('https://files.krazydad.com/assets/LadylikeBB.woff') format('woff');
+  src: url('./fonts/LadylikeBB.woff') format('woff');
   font-style: normal;
   font-weight: normal;
   text-rendering: optimizeLegibility;
