@@ -13,12 +13,8 @@ The projects have been restructured to use a shared codebase for controls, while
 
 ## Live Demo
 
-Access the projects through the root index page, which provides links to all available projects:
-
-- **Rose Synth** - Interactive rose pattern synthesizer
-- **Rotating Animation Box** - WebGL-based animation with rotation effects
-- **Test Face** - Facial animation experiments
-- **Skeleton** - Template project for new implementations
+<a href="https://jbum.github.io/p5js_slider_sketches/">LINK</a>
+(currently still janky)
 
 ## Features
 
@@ -42,23 +38,10 @@ Access the projects through the root index page, which provides links to all ava
 2. Modify the `sketch.js` file to create your custom visualization
 3. The new project will automatically use the common control panel system and detect the appropriate cookie name
 
-## Technical Details
-
-### Cookie System
-
-The projects use two types of cookies:
-- **Global MIDI mappings cookie** - Shared across all projects
-  - Named `midi_mappings`
-  - Stores MIDI controller assignments for all projects
-  - Same mappings apply to all projects
-
-- **Project-specific value cookies** - Each project has its own cookie
-  - Automatically named based on the project directory (e.g., `rose_synth_settings_v1`)
-  - Stores slider values and button states specific to that project
-
 ### MIDI Control
 
 To map MIDI controls:
+
 1. Shift+click on a slider or button to enter "learning mode"
 2. Send a MIDI message from your controller
 3. The control will be mapped to that MIDI message
