@@ -694,7 +694,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   
   // Request MIDI access with both input and output permissions
-  navigator.requestMIDIAccess({ sysex: true, software: true }).then(onMIDISuccess, onMIDIFailure);
+  try {
+    navigator.requestMIDIAccess({ sysex: true, software: true }).then(onMIDISuccess, onMIDIFailure);
+  } catch (error) {
+    console.warn('MIDI access request failed:', error);
+    // Continue without MIDI functionality
+  }
   read_slider_values_from_cookie(); // This now reads both cookies
   refreshCanvas();
 });
