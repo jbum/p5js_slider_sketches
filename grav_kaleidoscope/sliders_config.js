@@ -10,6 +10,9 @@ const sliders_cfg = [
 
     { minVal: 0, maxVal: 1, defaultVal: 0.75, name: "recurse scale" },
     { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "unused" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Gravity" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Damp" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Rotation Speed" },
 ];
 
 const buttons_cfg = [

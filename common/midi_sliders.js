@@ -19,6 +19,8 @@
 let midi = null; // global MIDIAccess object
 let midiOutput = null; // global MIDI output port
 let nbr_sliders = sliders_cfg.length;
+console.log("init sliders nbr", nbr_sliders);
+
 let sliders = [];
 let buttons = [];
 let lastRefreshTime = 0;
@@ -28,6 +30,7 @@ let sliders_are_hidden = false;
 let slider_bank = 0;
 const sliders_per_bank = 8;
 let nbr_slider_banks = 1 + Math.floor((sliders_cfg.length - 1) / sliders_per_bank);
+let debug_verbose = false;
 
 const max_visible_sliders = 8;
 const kDefaultControlStart = 0x15;
@@ -51,7 +54,9 @@ const lc_draw_colors = ['none', 'rgba(0,255,0,0.5)', 'rgba(255,0,0,0.5)', 'rgba(
 
 function toggle_slider_visibility() {
   sliders_are_hidden = !sliders_are_hidden;
-  console.log("Sliders are now", sliders_are_hidden ? "hidden" : "visible");
+  if (debug_verbose) {
+    console.log("Sliders are now", sliders_are_hidden ? "hidden" : "visible");
+  }
   // toggle display of sliders-canvas
   let sliders_canvas = document.getElementById('sliders-canvas');
   if (sliders_are_hidden) {
@@ -179,11 +184,15 @@ class Button {
       if (this.set_slider_bank) {
         slider_bank = this.value;
         refreshCanvas();
-        console.log("slider_bank", slider_bank);
+        if (debug_verbose) {
+          console.log("slider_bank", slider_bank);
+        }
       }
       button_hook(buttons.indexOf(this), this.value);
       sendNoteOn(this.noteNumber, lc_button_colors[this.value]);
-      console.log("button_idx", this.idx, "value", this.value);
+      if (debug_verbose) {
+        console.log("button_idx", this.idx, "value", this.value);
+      }
     }
 
     setNoteNumber(note) {
@@ -210,7 +219,8 @@ class Slider {
       this.bank = bank;
     }
 
-    render(ctx) {
+  render(ctx) {
+      console.log("sliders nbr", sliders.length);
       if (this.bank != slider_bank) {
         return;
       }
@@ -282,7 +292,9 @@ class Slider {
       }
 
       // Convert mouse x to slider value
-      console.log("x", x, "this.x", this.x, "this.x + this.width", this.x + this.width);
+      if (debug_verbose) {
+        console.log("x", x, "this.x", this.x, "this.x + this.width", this.x + this.width);
+      }
       let newValue = myMapConstrain(x, this.x, this.x + this.width, this.s_config.minVal, this.s_config.maxVal);
       this.setValue(newValue);
     }
@@ -303,7 +315,6 @@ function onMIDISuccess(midiAccess) {
   // get the portID of the output that has 'Novation' somewhere in it's name.
   let novation_port_id = null;
   for (const entry of midiAccess.outputs) {
-    console.log("Checking against ", entry[1].name);
     if (entry[1].name.includes('Novation') || entry[1].name.includes('Launch Control')) {
       novation_port_id = entry[1].id;
       break;
@@ -312,12 +323,16 @@ function onMIDISuccess(midiAccess) {
 
   if (novation_port_id) {
     midiOutput = midiAccess.outputs.get(novation_port_id);
-    console.log("Using Novation MIDI output:", midiOutput.name);
+    if (debug_verbose) {
+      console.log("Using Novation MIDI output:", midiOutput.name);
+    }
   } else {
     // Store the first available output port
     for (const entry of midiAccess.outputs) {
       midiOutput = entry[1];
-      console.log("Using MIDI output:", midiOutput.name);
+      if (debug_verbose) {
+        console.log("Using MIDI output:", midiOutput.name);
+      }
     }
   }
   read_slider_values_from_cookie();
@@ -350,7 +365,9 @@ function read_slider_values_from_cookie() {
   if (mappingsCookieValue) {
     try {
       const mappingsData = JSON.parse(mappingsCookieValue);
-      console.log("MIDI mappings cookie data", mappingsData);
+      if (debug_verbose) {
+        console.log("MIDI mappings cookie data", mappingsData);
+      }
       
       // Apply MIDI control mappings
       if (mappingsData.controls && mappingsData.controls.length) {
@@ -376,7 +393,9 @@ function read_slider_values_from_cookie() {
   if (valuesCookieValue) {
     try {
       const valuesData = JSON.parse(valuesCookieValue);
-      console.log("Values cookie data", valuesData);
+      if (debug_verbose) {
+        console.log("Values cookie data", valuesData);
+      }
       
       // Handle both old format (just values) and new format (values + controls)
       if (Array.isArray(valuesData)) {
@@ -389,7 +408,9 @@ function read_slider_values_from_cookie() {
         // New format with separate fields
         if (valuesData.values && valuesData.values.length) {
             valuesData.values.forEach((value, index) => {
+              if (debug_verbose) {
                 console.log(`slider ${index}: ${value}`);
+              }
             });
         }
         if (valuesData.values && valuesData.values.length) {
@@ -408,7 +429,9 @@ function read_slider_values_from_cookie() {
             if (buttons[i].set_slider_bank) {
               slider_bank = buttons[i].value;
               refreshCanvas();
-              console.log("slider_bank", slider_bank);
+              if (debug_verbose) {
+                console.log("slider_bank", slider_bank);
+              }
             }
             button_hook(i, buttons[i].value);
             sendNoteOn(buttons[i].noteNumber, lc_button_colors[buttons[i].value]);
@@ -466,20 +489,24 @@ function save_midi_mappings_to_cookie() {
 function listInputsAndOutputs(midiAccess) {
     for (const entry of midiAccess.inputs) {
       const input = entry[1];
-      console.log(
+      if (debug_verbose) {
+        console.log(
         `Input port [type:'${input.type}']` +
           ` id:'${input.id}'` +
           ` manufacturer:'${input.manufacturer}'` +
           ` name:'${input.name}'` +
           ` version:'${input.version}'`,
-      );
+        );
+      }
     }
   
     for (const entry of midiAccess.outputs) {
       const output = entry[1];
-      console.log(
-        `Output port [type:'${output.type}'] id:'${output.id}' manufacturer:'${output.manufacturer}' name:'${output.name}' version:'${output.version}'`,
-      );
+      if (debug_verbose) {
+        console.log(
+          `Output port [type:'${output.type}'] id:'${output.id}' manufacturer:'${output.manufacturer}' name:'${output.name}' version:'${output.version}'`,
+        );
+      }
     }
 }
 
@@ -508,7 +535,9 @@ function onMIDIMessage(event) {
       // Normal operation - find slider by control number
       let slider_idx = slider_controlNumbers.indexOf(data1);
       let targetSlider = sliders.find(slider => slider.idx % max_visible_sliders === slider_idx && slider.bank == slider_bank);
-      console.log("slider tweak slider_idx, targetSlider", slider_idx, targetSlider);
+      if (debug_verbose) {
+        console.log("slider tweak slider_idx, targetSlider", slider_idx, targetSlider);
+      }
       if (targetSlider) {
         // convert from MIDI value to slider value
         let v = myMapConstrain(data2, 0, 127, targetSlider.s_config.minVal, targetSlider.s_config.maxVal);
@@ -519,7 +548,7 @@ function onMIDIMessage(event) {
       }
     } else if (command == 0x90 || command == 0x80) {
       // Handle both note-on and note-off
-      let velocity = command == 0x80 ? 0 : data2;
+      // let velocity = command == 0x80 ? 0 : data2;
       
       // Check for learning mode first
       let learningButton = buttons.find(button => button.isLearning);
@@ -536,7 +565,9 @@ function onMIDIMessage(event) {
         targetButton.value = (targetButton.value + 1) % targetButton.nbr_states;  // Toggle the state
         if (targetButton.set_slider_bank) {
           slider_bank = targetButton.value;
-          console.log("slider_bank", slider_bank);
+          if (debug_verbose) {
+            console.log("slider_bank", slider_bank);
+          }
         }
         button_hook(buttons.indexOf(targetButton), targetButton.value);
         sendNoteOn(targetButton.noteNumber, lc_button_colors[targetButton.value]);
@@ -629,7 +660,9 @@ function handleMouseDown(event) {
     for (let slider of sliders) {
         if (slider.bank == slider_bank && slider.isPointInThumb(x, y)) {
           activeSlider = slider;  // Set the active slider for dragging
-          console.log("pressed active slider", activeSlider);
+          if (debug_verbose) {
+            console.log("pressed active slider", activeSlider);
+          }
             const wasLearningMode = isShiftDown;
             slider.handleMouseEvent(x, y, isShiftDown);
             slider_hook(activeSlider.idx, slider.value);
@@ -675,7 +708,9 @@ function sendNoteOn(note, velocity) {
   if (midiOutput) {
     // Note On message: 0x90 (note on) + channel 0
     let sendMessage = [0x98, note, velocity];
-    console.log("Sending MIDI message:", sendMessage);
+    if (debug_verbose) {
+      console.log("Sending MIDI message:", sendMessage);
+    }
     midiOutput.send(sendMessage);
   }
 }
@@ -695,14 +730,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize sliders (moved up by 50 pixels)
   let slider_x = (150-128)/2;
   let slider_top_y = 10;  // Changed from 60 to 10
-  console.log("initialing # sliders", nbr_sliders);
+
+  if (debug_verbose) {
+    console.log("initialing # sliders", nbr_sliders);
+  }
   for (let i = 0; i < nbr_sliders; i++) {
     let s_config = sliders_cfg[i];
     let bank = Math.floor(i / sliders_per_bank);
     let slider_y = (i % sliders_per_bank) * 50 + slider_top_y;
-    console.log("slider_y i=", i, slider_y);
+    if (debug_verbose) {
+      console.log("slider_y i=", i, slider_y);
+    }
     sliders.push(new Slider(s_config, i, slider_x, slider_y, bank));
   }
+  console.log("initialized sliders", sliders.length);
 
   // Initialize buttons (2 rows of 4)
   let button_spacing_x = 8;
@@ -720,7 +761,9 @@ document.addEventListener('DOMContentLoaded', () => {
       let nbr_states = b_config.states || 2;
       let x = button_start_x + col * (button_size + button_spacing_x);
       let y = button_start_y + row * (button_size + button_spacing_y + 4);
-      console.log("button_idx", button_idx, "x", x, "y", y, "nbr_states", nbr_states);
+      if (debug_verbose) {
+        console.log("button_idx", button_idx, "x", x, "y", y, "nbr_states", nbr_states);
+      }
       buttons.push(new Button(b_config, button_idx, x, y, button_size, button_size, nbr_states));
       }
   }
