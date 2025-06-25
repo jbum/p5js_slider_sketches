@@ -1,6 +1,8 @@
 html, body {
   margin: 0;
   padding: 0;
+  color: #aaaaaa;
+  font-family: LadylikeBB, helvetica, sans-serif;
 }
 
 @font-face {
