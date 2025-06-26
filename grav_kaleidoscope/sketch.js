@@ -133,8 +133,8 @@ function setup_balls() {
     boundaries.push(new Boundary(width, height/2, bgap, height, 0.0));
     console.log("kNbrBalls", kNbrBalls);
     for (let i = 0; i < kNbrBalls; ++i) {
-      let x = random(kWidth);
-      let y = random(10, 20);
+      let x = random(10, kWidth-10);
+      let y = random(10, kHeight-10);
       let radius = map(pow(random(1), 2), 0, 1, kSmallCircleRadius, kBigCircleRadius);
       let pts = int(map(pow(random(1), 2), 0, 1, 4, 13));
       let clr = color(random(255), random(255), random(255));
