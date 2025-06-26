@@ -213,13 +213,13 @@ function DrawCell(oc) {
   oc.filter(BLUR, kBlurAmt);
   oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
   // gravity feedback
-  if (!usesMirrors) {
-    oc.push();
-    oc.translate(width / 2, height / 2);
-    oc.stroke(255, 255, 255);
-    oc.line(0, 0, engine.gravity.x * kBigCircleRadius / 2, engine.gravity.y * kBigCircleRadius / 2);
-    oc.pop();
-  }
+  // if (!usesMirrors) {
+  //   oc.push();
+  //   oc.translate(width / 2, height / 2);
+  //   oc.stroke(255, 255, 255);
+  //   oc.line(0, 0, engine.gravity.x * kBigCircleRadius / 2, engine.gravity.y * kBigCircleRadius / 2);
+  //   oc.pop();
+  // }
 }
 
 function setup() {
