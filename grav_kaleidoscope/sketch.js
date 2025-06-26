@@ -23,8 +23,6 @@ let objectCell, // objectCell contains the things the kaleidoscope is looking at
 let usesMirrors = true;
 
 // these vars control the particle animation in the object cell
-let kNbrDots = 200;
-let kDotRadius = 12;
 let kBlurAmt = 3;
 let kDarkenAmount = 164;
 let kRotationSpeed = 0.01;
@@ -35,11 +33,9 @@ let kUseRecursion = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
 
-let kBigCircleRadius = kWidth * .05;
+let kBigCircleRadius = kWidth * .04;
 let kSmallCircleRadius = kWidth * .01;
-let kNbrBalls = 200;
-let kGravity = 0.001;
-let kStiffness = 0.002;
+let kNbrBalls = 150;
 
 class Ball {
     constructor(px, py, radius, color, pts) {
@@ -65,7 +61,7 @@ class Ball {
         ctx.rotate(angle);
         ctx.rectMode(CENTER);
         ctx.strokeWeight(1);
-        let innerRadius = this.r * 0.5;
+        let innerRadius = this.r * 0.75;
         let outerRadius = this.r * 1.5;
         let angleStep = 2 * PI / this.pts;
         ctx.beginShape();
@@ -132,20 +128,27 @@ function setup_balls() {
     console.log("engine gravity scale", engine.gravity.scale);
 
     world = engine.world;
-    let bgap = 10;
-    boundaries.push(new Boundary(width/2, 0, width, bgap, 0.0));
-    boundaries.push(new Boundary(width/2, height, width, bgap, 0.0));
-    boundaries.push(new Boundary(0, height/2, bgap, height, 0.0));
-    boundaries.push(new Boundary(width, height/2, bgap, height, 0.0));
-    console.log("kNbrBalls", kNbrBalls);
-    for (let i = 0; i < kNbrBalls; ++i) {
-      let x = random(10, kWidth-10);
-      let y = random(10, kHeight-10);
-      let radius = map(pow(random(1), 2), 0, 1, kSmallCircleRadius, kBigCircleRadius);
-      let pts = int(map(pow(random(1), 2), 0, 1, 4, 13));
-      let clr = get_ball_color(i, kNbrBalls);
-      balls.push(new Ball(x, y, radius, clr, pts));
-    }
+  let nbr_boundaries = 12;
+  let object_cell_radius = scopeRadius * 1.1;
+  let circumference = 2 * PI * object_cell_radius;
+  let boundary_div = circumference / nbr_boundaries;
+  for (let i = 0; i < nbr_boundaries; ++i) {
+    let angle = i * 2 * PI / nbr_boundaries;
+    let x = width/2 + cos(angle) * object_cell_radius;
+    let y = height/2 + sin(angle) * object_cell_radius;
+    boundaries.push(new Boundary(x, y, boundary_div, 10, angle+PI/2));
+  }
+  console.log("kNbrBalls", kNbrBalls);
+  for (let i = 0; i < kNbrBalls; ++i) {
+    let ang = random(0, 2 * PI);
+    let dist = random(10, scopeRadius-10);
+    let x = width/2 + cos(ang) * dist;
+    let y = height/2 + sin(ang) * dist;
+    let radius = map(pow(random(1), 2), 0, 1, kSmallCircleRadius, kBigCircleRadius);
+    let pts = int(map(pow(random(1), 2), 0, 1, 4, 13));
+    let clr = get_ball_color(i, kNbrBalls);
+    balls.push(new Ball(x, y, radius, clr, pts));
+  }
 
 }
 
@@ -275,7 +278,7 @@ function slider_hook_process(slider_index, value) {
       kRecursionScale = map(value, 0, 1, 0.1, 0.9);
       break;
     case 6:
-      kGravity = map(value, 0, 1, 0.00, 0.002);
+      let kGravity = map(value, 0, 1, 0.00, 0.002);
       engine.gravity.scale = kGravity;
       break;
     case 7:
@@ -305,7 +308,7 @@ function button_hook_process(index, value) {
     case 0:
       usesMirrors = !(value == 0);
       break;
-    case 2:
+    case 1:
       kWedgeFeedback = !(value == 0);
       break;
   }
@@ -381,11 +384,10 @@ function draw() {
   background(0);
   translate(width / 2, height / 2);
 
-
+  let kGravAngle = atan2(engine.gravity.y, engine.gravity.x);
+  rotate(PI/2-kGravAngle);
 
   // rotate(rot_angle);    // rotating of scope as a whole
-  // kGrav_x = cos(rot_angle);
-  // kGrav_y = sin(rot_angle);
   image(compositeCell, -kWidth/2, -kHeight/2);
   pop();
 }
