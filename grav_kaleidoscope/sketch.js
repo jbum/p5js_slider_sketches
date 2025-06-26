@@ -4,9 +4,6 @@ const { Engine, World, Bodies, Composite } = Matter;
 let engine;
 let world;
 
-let values = [0, 0, 0, 0, 0, 0, 0, 0];
-let button_values = [0, 0, 0, 0, 0, 0, 0, 0];
-
 let kWidth = 800;             // width of graphics
 let kHeight = 800;            // height of graphics
 
@@ -26,25 +23,21 @@ let objectCell, // objectCell contains the things the kaleidoscope is looking at
 let usesMirrors = true;
 
 // these vars control the particle animation in the object cell
-let kNbrDots = 100;
+let kNbrDots = 200;
 let kDotRadius = 12;
 let kBlurAmt = 3;
 let kDarkenAmount = 164;
-let kRotationSpeed = 0.00005;
+let kRotationSpeed = 0.01;
 let kRotationAngle = 1.5707963268;
 
 let kWedgeFeedback = false;
 let kUseRecursion = false;
-let kGravityFeedback = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
-let rStart;
-const oc_padding = 4; // object cell padding -- this helps reduce edge artifacts in the center and outer rim
 
 let kBigCircleRadius = kWidth * .05;
 let kSmallCircleRadius = kWidth * .01;
-let kNbrBalls = 300;
-let kDamp = 0.985;
+let kNbrBalls = 200;
 let kGravity = 0.001;
 let kStiffness = 0.002;
 
@@ -121,6 +114,19 @@ class Boundary {
 let balls = [];
 let boundaries = [];
 
+
+
+function get_ball_color(i, kNbrBalls) {
+  // as i goes from 0 to kNbrBalls-1, the hue goes from 0 to 360, the saturation oscillates twice, and the brightness oscillates four times
+  let hue = sin(i * 4 * PI / kNbrBalls) * 128 + 128;
+  let sat = cos(i * 2 * PI / kNbrBalls) * 128 + 128;
+  let bri = sin(i * 8 * PI / kNbrBalls) * 128 + 128;
+  colorMode(HSB, 255, 255, 255);
+  let clr = color(hue, sat, bri);
+  colorMode(RGB, 255, 255, 255);
+  return clr;
+}
+
 function setup_balls() {
     engine = Engine.create();
     console.log("engine gravity scale", engine.gravity.scale);
@@ -137,7 +143,7 @@ function setup_balls() {
       let y = random(10, kHeight-10);
       let radius = map(pow(random(1), 2), 0, 1, kSmallCircleRadius, kBigCircleRadius);
       let pts = int(map(pow(random(1), 2), 0, 1, 4, 13));
-      let clr = color(random(255), random(255), random(255));
+      let clr = get_ball_color(i, kNbrBalls);
       balls.push(new Ball(x, y, radius, clr, pts));
     }
 
@@ -191,7 +197,7 @@ function DrawCell(oc) {
     boundaries[i].show(oc);
   }
 
-  kRotationAngle += 0.01;
+  kRotationAngle += kRotationSpeed;
 
 
 
@@ -203,7 +209,7 @@ function DrawCell(oc) {
   oc.filter(BLUR, kBlurAmt);
   oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
   // gravity feedback
-  if (kGravityFeedback) {
+  if (!usesMirrors) {
     oc.push();
     oc.translate(width / 2, height / 2);
     oc.stroke(255, 255, 255);
@@ -246,7 +252,6 @@ function empty_slider_queue() {
 
 // process incoming slider changes
 function slider_hook_process(slider_index, value) {
-  values[slider_index] = value;
   switch (slider_index) {
     case 0:
       let v = value * value;
@@ -255,42 +260,26 @@ function slider_hook_process(slider_index, value) {
       setup_mirror();
       break;
     case 1:
-      kNbrDots = map(value, 0, 1, 10, 200);
-      break;
-    case 2:
-      kDotRadius = map(value, 0, 1, 1, 20);
-      kSmallCircleRadius = kDotRadius;
-      for (let ball of balls) {
-        ball.radius = kSmallCircleRadius * random(0.9,1.1);
-      }
-      break;
-    case 3:
       kBlurAmt = map(value, 0, 1, 0, 20);
       break;
-    case 4:
+    case 2:
       kDarkenAmount = map(value, 0, 1, 0, 255);
       break;
-    case 5:
+    case 3:
       kRotationAngle = map(value, 0, 1, -PI,PI);
       break;
-    case 6:
+    case 4:
       kRecursionLevels = int(map(value, 0, 1, 0, 6));
       break;
-    case 7:
-      rStart = map(value,0,1,30,60);
-      break;
-    case 8:
+    case 5:
       kRecursionScale = map(value, 0, 1, 0.1, 0.9);
       break;
-    case 10:
+    case 6:
       kGravity = map(value, 0, 1, 0.00, 0.002);
       engine.gravity.scale = kGravity;
       break;
-    case 11:
-      kDamp = map(value, 0, 1, 0.8, 0.999);
-      break;
-    case 12:
-      rotation_speed = map(value, 0, 1, 0,30)**Math.PI/180;
+    case 7:
+      kRotationSpeed = map(value, 0, 1, 0,0.1);
       break;
   }
 }
@@ -312,13 +301,9 @@ function empty_button_queue() {
 
 // process incoming button presses
 function button_hook_process(index, value) {
-  button_values[index] = value;
   switch (index) {
     case 0:
       usesMirrors = !(value == 0);
-      break;
-    case 1:
-      kGravityFeedback = !(value == 0);
       break;
     case 2:
       kWedgeFeedback = !(value == 0);

@@ -1,5 +1,3 @@
-let values = [0,0,0,0,0,0,0,0];
-let button_values = [0, 0, 0, 0, 0, 0, 0, 0];
 
 let kWidth = 512;             // width of graphics
 let kHeight = 512;            // height of graphics
@@ -108,7 +106,6 @@ function empty_slider_queue() {
 }
 
 function slider_hook_process(slider_index, value) {
-  values[slider_index] = value;
   let v = value;
   switch (slider_index) {
     case 0:
@@ -177,7 +174,6 @@ function empty_button_queue() {
 }
 
 function button_hook_process(index, value) {
-  button_values[index] = value;
   if (index < 4) {
     let rIdx = index;
     if (value) {

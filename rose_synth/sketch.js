@@ -1,6 +1,4 @@
 let radii = [];
-let values = [64,64,0,0,0,0,0,0];
-let button_values = [0, 0, 0, 0, 0, 0, 0, 0];
 const k_max_voices = 256;
 const k_max_channels = 8;
 const kDefaultVelocity = 64;
@@ -228,9 +226,6 @@ function empty_button_queue() {
 
 function button_hook_process(index, value) {
   console.log("recv button_hook", index, value);
-  if (index >= 0 && index < button_values.length) {
-    button_values[index] = value;
-  }
   switch (index) {
     case 0:
       if (value > 0) {

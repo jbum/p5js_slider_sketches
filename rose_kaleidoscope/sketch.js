@@ -1,6 +1,4 @@
 // these receive values from the external slider object
-let values = [0, 0, 0, 0, 0, 0, 0, 0];
-let button_values = [0, 0, 0, 0, 0, 0, 0, 0];
 
 let kWidth = 800;             // width of graphics
 let kHeight = 800;            // height of graphics
@@ -130,7 +128,6 @@ function empty_slider_queue() {
 
 // process incoming slider changes
 function slider_hook_process(slider_index, value) {
-  values[slider_index] = value;
   switch (slider_index) {
     case 0:
       let v = value * value;
@@ -182,7 +179,6 @@ function empty_button_queue() {
 
 // process incoming button presses
 function button_hook_process(index, value) {
-  button_values[index] = value;
   switch (index) {
     case 0:
       usesMirrors = !(value == 0);
