@@ -49,11 +49,12 @@ let kGravity = 0.001;
 let kStiffness = 0.002;
 
 class Ball {
-    constructor(px, py, radius, color) {
+    constructor(px, py, radius, color, pts) {
         this.x = px;
         this.y = py;
         this.r = radius;
         this.color = color;
+        this.pts = pts;
         let options = {
             friction: 0,
             restitution: 0.6
@@ -71,7 +72,21 @@ class Ball {
         ctx.rotate(angle);
         ctx.rectMode(CENTER);
         ctx.strokeWeight(1);
-        ctx.ellipse(0, 0, this.r);
+        let innerRadius = this.r * 0.5;
+        let outerRadius = this.r * 1.5;
+        let angleStep = 2 * PI / this.pts;
+        ctx.beginShape();
+        for (let i = 0; i < this.pts; i++) {
+            let angle = i * angleStep;
+            let x = cos(angle) * outerRadius;
+            let y = sin(angle) * outerRadius;
+            ctx.vertex(x, y);   
+            x = cos(angle) * innerRadius;
+            y = sin(angle) * innerRadius;
+            ctx.vertex(x, y); 
+        }
+        ctx.endShape(CLOSE);
+        // ctx.ellipse(0, 0, this.r);
         ctx.pop();
     }
 }
@@ -120,9 +135,10 @@ function setup_balls() {
     for (let i = 0; i < kNbrBalls; ++i) {
       let x = random(kWidth);
       let y = random(10, 20);
-      let radius = map(pow(random(1), 2),0,1,kSmallCircleRadius, kBigCircleRadius);
+      let radius = map(pow(random(1), 2), 0, 1, kSmallCircleRadius, kBigCircleRadius);
+      let pts = int(map(pow(random(1), 2), 0, 1, 4, 13));
       let clr = color(random(255), random(255), random(255));
-      balls.push(new Ball(x, y, radius, clr));
+      balls.push(new Ball(x, y, radius, clr, pts));
     }
 
 }
@@ -175,7 +191,7 @@ function DrawCell(oc) {
     boundaries[i].show(oc);
   }
 
-
+  kRotationAngle += 0.01;
 
 
 
