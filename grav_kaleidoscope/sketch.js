@@ -42,6 +42,7 @@ class Ball {
         this.x = px;
         this.y = py;
         this.r = radius;
+        this.inner_r = random(this.r*.1, this.r);
         this.color = color;
         this.pts = pts;
         let options = {
@@ -61,8 +62,8 @@ class Ball {
         ctx.rotate(angle);
         ctx.rectMode(CENTER);
         ctx.strokeWeight(1);
-        let innerRadius = this.r * 0.75;
-        let outerRadius = this.r * 1.5;
+        let innerRadius = this.inner_r;
+        let outerRadius = this.r;
         let angleStep = 2 * PI / this.pts;
         ctx.beginShape();
         for (let i = 0; i < this.pts; i++) {
