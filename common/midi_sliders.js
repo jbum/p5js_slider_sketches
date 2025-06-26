@@ -220,7 +220,7 @@ class Slider {
     }
 
   render(ctx) {
-      console.log("sliders nbr", sliders.length);
+      // console.log("sliders nbr", sliders.length);
       if (this.bank != slider_bank) {
         return;
       }

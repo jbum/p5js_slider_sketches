@@ -178,7 +178,6 @@ function empty_button_queue() {
 
 function button_hook_process(index, value) {
   button_values[index] = value;
-  console.log("button revieved ", index, "value", value);
   if (index < 4) {
     let rIdx = index;
     if (value) {

@@ -1,4 +1,9 @@
 // these receive values from the external slider object
+const { Engine, World, Bodies, Composite } = Matter;
+
+let engine;
+let world;
+
 let values = [0, 0, 0, 0, 0, 0, 0, 0];
 let button_values = [0, 0, 0, 0, 0, 0, 0, 0];
 
@@ -21,12 +26,12 @@ let objectCell, // objectCell contains the things the kaleidoscope is looking at
 let usesMirrors = true;
 
 // these vars control the particle animation in the object cell
-let kNbrDots = 512;
+let kNbrDots = 100;
 let kDotRadius = 12;
 let kBlurAmt = 3;
 let kDarkenAmount = 164;
 let kRotationSpeed = 0.00005;
-
+let kRotationAngle = 1.5707963268;
 
 let kWedgeFeedback = false;
 let kUseRecursion = false;
@@ -36,204 +41,92 @@ let kRecursionScale = 0.66;
 let rStart;
 const oc_padding = 4; // object cell padding -- this helps reduce edge artifacts in the center and outer rim
 
-let kBigCircleRadius = kWidth * .45;
-let kSmallCircleRadius = kWidth * .02;
+let kBigCircleRadius = kWidth * .05;
+let kSmallCircleRadius = kWidth * .01;
 let kNbrBalls = 300;
 let kDamp = 0.985;
-let kGravity = 0.04;
+let kGravity = 0.001;
 let kStiffness = 0.002;
-let kGrav_x = 1;
-let kGrav_y = 0;
-let last_millis = 0;
+
 class Ball {
-  constructor(px, py, vx, vy, radius, color) {
-    this.px = px;
-    this.py = py;
-    this.vx = vx;
-    this.vy = vy;
-    this.color = color;
-    this.radius = radius;
-  }
-
-  rotate_ball(angle) {
-    let cur_ang = atan2(this.py, this.px);
-    let cur_dist = dist(this.px, this.py, 0, 0);
-    let new_ang = cur_ang + angle;
-    let new_x = cur_dist * cos(new_ang);
-    let new_y = cur_dist * sin(new_ang);
-    
-    // Rotate velocity vector as well
-    let vel_ang = atan2(this.vy, this.vx);
-    let vel_mag = sqrt(this.vx * this.vx + this.vy * this.vy);
-    let new_vel_ang = vel_ang + angle;
-    this.vx = vel_mag * cos(new_vel_ang);
-    this.vy = vel_mag * sin(new_vel_ang);
-    
-    this.px = new_x;
-    this.py = new_y;
-  }
-  
-  movement_pass() {
-    // Apply gravity
-    this.vx += kGrav_x*kGravity;
-    this.vy += kGrav_y*kGravity;
-    
-    // Update position
-    this.px += this.vx;
-    this.py += this.vy;
-    
-    // Check collision with circle boundary
-    let distance_from_center = dist(this.px, this.py, 0, 0);
-    let max_allowed_distance = kBigCircleRadius - this.radius;
-    
-    if (distance_from_center > max_allowed_distance) {
-      // Ball is outside the boundary - push it back
-      let nx = this.px / distance_from_center;
-      let ny = this.py / distance_from_center;
-      
-      // Push ball back to boundary
-      this.px = nx * max_allowed_distance;
-      this.py = ny * max_allowed_distance;
-      
-      // Reflect velocity vector off the boundary
-      let dot_product = this.vx * nx + this.vy * ny;
-      this.vx = this.vx - 2 * dot_product * nx;
-      this.vy = this.vy - 2 * dot_product * ny;
+    constructor(px, py, radius, color) {
+        this.x = px;
+        this.y = py;
+        this.r = radius;
+        this.color = color;
+        let options = {
+            friction: 0,
+            restitution: 0.6
+        }
+        this.body = Bodies.circle(this.x, this.y, this.r, options);
+        Composite.add(world, this.body);
     }
-    
-    // Apply damping
-    this.vx *= kDamp;
-    this.vy *= kDamp;
-  }
-  draw(ctx)
-  {
-    ctx.push();
-    ctx.noStroke();
-    ctx.fill(this.color);
-    ctx.ellipse(this.px, this.py, this.radius, this.radius);
-    ctx.pop();
-  }
+    show(ctx) {
+        let pos = this.body.position;
+        let angle = this.body.angle;
+        ctx.push();
+        ctx.noStroke();
+        ctx.fill(this.color);
+        ctx.translate(pos.x, pos.y);
+        ctx.rotate(angle);
+        ctx.rectMode(CENTER);
+        ctx.strokeWeight(1);
+        ctx.ellipse(0, 0, this.r);
+        ctx.pop();
+    }
 }
+class Boundary {
+    constructor(x, y, w, h, a) {
+        this.x = x;
+        this.y = y;
+        this.w = w;
+        this.h = h;
+        let options = {
+            friction: 0,
+            restitution: 0.6,
+            angle: a,
+            isStatic: true
+        }
+        this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
+        Composite.add(world, this.body);
+    }
 
-
+    show(ctx) {
+        let pos = this.body.position;
+        let angle = this.body.angle;
+        ctx.push();
+        ctx.translate(pos.x, pos.y);
+        ctx.rotate(angle);
+        ctx.rectMode(CENTER);
+        ctx.fill(0x25);
+        ctx.rect(0, 0, this.w, this.h);
+        ctx.pop();
+    }
+}
 let balls = [];
-console.log("sketch");
-
-class Spring {
-  constructor(ball1, ball2, rest_length, k) {
-    this.ball1 = ball1;
-    this.ball2 = ball2;
-    this.rest_length = rest_length;
-    this.k = k;
-  }
-  draw(ctx) {
-    ctx.push();
-    ctx.stroke(255,0,0);
-    ctx.line(this.ball1.px, this.ball1.py, this.ball2.px, this.ball2.py);
-    ctx.pop();
-  }
-}
-
-let springs = [];
+let boundaries = [];
 
 function setup_balls() {
-  let ang = 0;
-  let dist = kBigCircleRadius - kSmallCircleRadius * 2;
-  for (let i = 0; i < kNbrBalls; ++i) {
-    let got_one = false;
-    console.log("dist", dist,"ang", ang);
-    let bx = cos(ang) * dist;
-    let by = sin(ang) * dist;
-    let circumference = 2 * PI * dist;
-    ang += 2 * PI * kSmallCircleRadius * 2 / circumference;
-    if (ang > 2 * PI) {
-      ang = 0;
-      dist -= kSmallCircleRadius * 2;
+    engine = Engine.create();
+    console.log("engine gravity scale", engine.gravity.scale);
+
+    world = engine.world;
+    let bgap = 10;
+    boundaries.push(new Boundary(width/2, 0, width, bgap, 0.0));
+    boundaries.push(new Boundary(width/2, height, width, bgap, 0.0));
+    boundaries.push(new Boundary(0, height/2, bgap, height, 0.0));
+    boundaries.push(new Boundary(width, height/2, bgap, height, 0.0));
+    console.log("kNbrBalls", kNbrBalls);
+    for (let i = 0; i < kNbrBalls; ++i) {
+      let x = random(kWidth);
+      let y = random(10, 20);
+      let radius = map(pow(random(1), 2),0,1,kSmallCircleRadius, kBigCircleRadius);
+      let clr = color(random(255), random(255), random(255));
+      balls.push(new Ball(x, y, radius, clr));
     }
-    let bvx = random(-1, 1);
-    let bvy = random(-1, 1);
-    let bcol = color(random(255), random(255), random(255));
-    balls.push(new Ball(bx, by, bvx, bvy, kSmallCircleRadius, bcol));
-  }
-  let ctr = 0;
-  while (ctr < balls.length) {
-    let ball1 = balls[ctr];
-    let ball2 = balls[(ctr + 1) % balls.length];
-    ctr += 1;
-    if (ctr % 5 == 0) {
-      continue;
-    }
-    let rest_length = kSmallCircleRadius*2.1;
-    let k = kStiffness;
-    springs.push(new Spring(ball1, ball2, rest_length, k));
-  }
-  console.log("balls", balls);
-  last_rotation_time = millis();
+
 }
 
-function handle_springs() {
-  for (let spring of springs) {
-    let dx = spring.ball1.px - spring.ball2.px;
-    let dy = spring.ball1.py - spring.ball2.py;
-    let dist = sqrt(dx*dx + dy*dy);
-    let force = spring.k * (dist - spring.rest_length);
-    let nx = dx / dist;
-    let ny = dy / dist;
-    spring.ball1.vx -= force * nx;
-    spring.ball1.vy -= force * ny;
-    spring.ball2.vx += force * nx;
-    spring.ball2.vy += force * ny;
-  }
-}
-
-function handle_ball_collisions() {
-  for (let i = 0; i < balls.length; ++i) {
-    for (let j = i + 1; j < balls.length; ++j) {
-      let ball1 = balls[i];
-      let ball2 = balls[j];
-      let dx = ball1.px - ball2.px;
-      let dy = ball1.py - ball2.py;
-      let dist = sqrt(dx*dx + dy*dy);
-      let min_dist = ball1.radius + ball2.radius;
-      
-      if (dist < min_dist && dist > 0.001) {
-        // Calculate normal vector
-        let nx = dx / dist;
-        let ny = dy / dist;
-        
-        // Separate overlapping balls more aggressively
-        let overlap = min_dist - dist;
-        let separation = overlap * 0.51; // Slightly more than half to prevent sticking
-        ball1.px += nx * separation;
-        ball1.py += ny * separation;
-        ball2.px -= nx * separation;
-        ball2.py -= ny * separation;
-        
-        // Calculate relative velocity
-        let dvx = ball1.vx - ball2.vx;
-        let dvy = ball1.vy - ball2.vy;
-        
-        // Calculate relative velocity along normal
-        let dvn = dvx * nx + dvy * ny;
-        
-        // Only resolve if objects are moving towards each other
-        if (dvn > 0) continue;
-        
-        // Coefficient of restitution (bounciness)
-        let restitution = 0.8;
-        
-        // Calculate impulse magnitude
-        let impulse_magnitude = -(1 + restitution) * dvn;
-        
-        // Apply collision response
-        ball1.vx += impulse_magnitude * nx * 0.5;
-        ball1.vy += impulse_magnitude * ny * 0.5;
-        ball2.vx -= impulse_magnitude * nx * 0.5;
-        ball2.vy -= impulse_magnitude * ny * 0.5;
-      }
-    }
-  }
-}
 
 function setup_mirror() {
   mirrorRadians = 2 * PI / (nbrSides * 2);
@@ -267,39 +160,39 @@ function myMask() {
 
 function DrawCell(oc) {
   oc.background(0, 0, 0, kDarkenAmount);
-  for (let ball of balls) {
-    ball.movement_pass();
+  oc.ellipseMode(RADIUS);
+
+
+  engine.gravity.x = cos(kRotationAngle);
+  engine.gravity.y = sin(kRotationAngle);
+
+
+  Engine.update(engine);
+  for (let i = 0; i < balls.length; i++) {
+    balls[i].show(oc);
+  }
+  for (let i = 0; i < boundaries.length; i++) {
+    boundaries[i].show(oc);
   }
 
-  let now = millis();
-  let time_delta = now - last_millis;
-  let rotation_angle = -(kRotationSpeed/1000) * time_delta;
-  last_millis = now;
-  for (let ball of balls) {
-    ball.rotate_ball(rotation_angle);
-  }
 
 
-  handle_ball_collisions();
-  handle_springs();
+
 
   oc.push();
-  oc.translate(width/2, height/2);
-  // oc.ellipse(0, 0, kBigCircleRadius, kBigCircleRadius)
-  for (let ball of balls) {
-    ball.draw(oc);
-  }
-  for (let spring of springs) {
-    spring.draw(oc);
-  }
+  oc.translate(width / 2, height / 2);
+  // old drawing went here...
   oc.pop();
   // this provides a blur effect
   oc.filter(BLUR, kBlurAmt);
   oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
-  // gravitry feedback
+  // gravity feedback
   if (kGravityFeedback) {
+    oc.push();
+    oc.translate(width / 2, height / 2);
     oc.stroke(255, 255, 255);
-    oc.line(width/2, height/2, width/2+kGrav_x*kBigCircleRadius/2, height/2+kGrav_y*kBigCircleRadius/2);
+    oc.line(0, 0, engine.gravity.x * kBigCircleRadius / 2, engine.gravity.y * kBigCircleRadius / 2);
+    oc.pop();
   }
 }
 
@@ -338,7 +231,6 @@ function empty_slider_queue() {
 // process incoming slider changes
 function slider_hook_process(slider_index, value) {
   values[slider_index] = value;
-  console.log("slider revieved ", slider_index, "value", value);
   switch (slider_index) {
     case 0:
       let v = value * value;
@@ -347,7 +239,7 @@ function slider_hook_process(slider_index, value) {
       setup_mirror();
       break;
     case 1:
-      kNbrDots = map(value, 0, 1, 10, 2048);
+      kNbrDots = map(value, 0, 1, 10, 200);
       break;
     case 2:
       kDotRadius = map(value, 0, 1, 1, 20);
@@ -363,7 +255,7 @@ function slider_hook_process(slider_index, value) {
       kDarkenAmount = map(value, 0, 1, 0, 255);
       break;
     case 5:
-      kRotationSpeed = map(value, 0, 1, 0,30)**Math.PI/180;
+      kRotationAngle = map(value, 0, 1, -PI,PI);
       break;
     case 6:
       kRecursionLevels = int(map(value, 0, 1, 0, 6));
@@ -375,7 +267,8 @@ function slider_hook_process(slider_index, value) {
       kRecursionScale = map(value, 0, 1, 0.1, 0.9);
       break;
     case 10:
-      kGravity = map(value, 0, 1, 0.001, 0.2);
+      kGravity = map(value, 0, 1, 0.00, 0.002);
+      engine.gravity.scale = kGravity;
       break;
     case 11:
       kDamp = map(value, 0, 1, 0.8, 0.999);
@@ -404,7 +297,6 @@ function empty_button_queue() {
 // process incoming button presses
 function button_hook_process(index, value) {
   button_values[index] = value;
-  console.log("button revieved ", index, "value", value);
   switch (index) {
     case 0:
       usesMirrors = !(value == 0);

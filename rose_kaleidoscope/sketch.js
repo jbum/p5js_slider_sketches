@@ -98,7 +98,7 @@ function DrawCell(oc) {
 
 function setup() {
   let min_window_dimension = Math.min(windowWidth, windowHeight);
-  myCanvas = createCanvas(kWidth, kWidth, document.getElementById('sketch-canvas'));
+  myCanvas = createCanvas(kWidth, kWidth);
   compositeCell = createGraphics(kWidth, kWidth);
   background(0);
 
@@ -131,7 +131,6 @@ function empty_slider_queue() {
 // process incoming slider changes
 function slider_hook_process(slider_index, value) {
   values[slider_index] = value;
-  console.log("slider revieved ", slider_index, "value", value);
   switch (slider_index) {
     case 0:
       let v = value * value;
@@ -184,7 +183,6 @@ function empty_button_queue() {
 // process incoming button presses
 function button_hook_process(index, value) {
   button_values[index] = value;
-  console.log("button revieved ", index, "value", value);
   switch (index) {
     case 0:
       usesMirrors = !(value == 0);
