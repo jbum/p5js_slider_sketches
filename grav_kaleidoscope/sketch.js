@@ -35,7 +35,7 @@ let kRecursionScale = 0.66;
 
 let kBigCircleRadius = kWidth * .04;
 let kSmallCircleRadius = kWidth * .01;
-let kNbrBalls = 150;
+let kNbrBalls = 200;
 
 class Ball {
     constructor(px, py, radius, color, pts) {
