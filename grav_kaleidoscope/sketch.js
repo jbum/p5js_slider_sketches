@@ -25,11 +25,12 @@ let kNbrDots = 512;
 let kDotRadius = 12;
 let kBlurAmt = 3;
 let kDarkenAmount = 164;
-let kSpeed = 0.00005;
+let kRotationSpeed = 0.00005;
 
 
 let kWedgeFeedback = false;
 let kUseRecursion = false;
+let kGravityFeedback = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
 let rStart;
@@ -43,7 +44,7 @@ let kGravity = 0.04;
 let kStiffness = 0.002;
 let kGrav_x = 1;
 let kGrav_y = 0;
-
+let last_millis = 0;
 class Ball {
   constructor(px, py, vx, vy, radius, color) {
     this.px = px;
@@ -243,6 +244,8 @@ function setup_mirror() {
 
 // render the mirror shape - use the mirror button to see it
 function myMask() {
+  compositeCell.push();
+  // compositeCell.rotate(rot_angle);
   let ox = 0, oy = 0;  // objectCell.height/2;
   let adjustedAngle = adjustedMirrorRadians; // helps reduce seams by adding a pixel to the outer angle
   compositeCell.beginShape();
@@ -259,6 +262,7 @@ function myMask() {
   // curveVertex(cos(mirrorRadians)*scopeRadius, sin(mirrorRadians)*scopeRadius);
   // curveVertex(cos(mirrorRadians)*scopeRadius, sin(mirrorRadians)*scopeRadius);
   compositeCell.endShape(CLOSE);
+  compositeCell.pop();
 }
 
 function DrawCell(oc) {
@@ -266,6 +270,16 @@ function DrawCell(oc) {
   for (let ball of balls) {
     ball.movement_pass();
   }
+
+  let now = millis();
+  let time_delta = now - last_millis;
+  let rotation_angle = -(kRotationSpeed/1000) * time_delta;
+  last_millis = now;
+  for (let ball of balls) {
+    ball.rotate_ball(rotation_angle);
+  }
+
+
   handle_ball_collisions();
   handle_springs();
 
@@ -276,15 +290,17 @@ function DrawCell(oc) {
     ball.draw(oc);
   }
   for (let spring of springs) {
-    // spring.draw();
+    spring.draw(oc);
   }
   oc.pop();
   // this provides a blur effect
   oc.filter(BLUR, kBlurAmt);
   oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
   // gravitry feedback
-  // oc.stroke(255, 255, 255);
-  // oc.line(width/2, height/2, width/2+kGrav_x*kBigCircleRadius/2, height/2+kGrav_y*kBigCircleRadius/2);
+  if (kGravityFeedback) {
+    oc.stroke(255, 255, 255);
+    oc.line(width/2, height/2, width/2+kGrav_x*kBigCircleRadius/2, height/2+kGrav_y*kBigCircleRadius/2);
+  }
 }
 
 function setup() {
@@ -301,6 +317,7 @@ function setup() {
   ellipseMode(RADIUS);
   setup_mirror();
   setup_balls();
+  last_millis = millis();
 }
 
 // we use a queue to manage incoming slider values, because slider_hook is not in p5.js context when called.
@@ -336,7 +353,7 @@ function slider_hook_process(slider_index, value) {
       kDotRadius = map(value, 0, 1, 1, 20);
       kSmallCircleRadius = kDotRadius;
       for (let ball of balls) {
-        ball.radius = kSmallCircleRadius;
+        ball.radius = kSmallCircleRadius * random(0.9,1.1);
       }
       break;
     case 3:
@@ -346,7 +363,7 @@ function slider_hook_process(slider_index, value) {
       kDarkenAmount = map(value, 0, 1, 0, 255);
       break;
     case 5:
-      kSpeed = map(value, 0, 1, 0.00001, 0.0001);
+      kRotationSpeed = map(value, 0, 1, 0,30)**Math.PI/180;
       break;
     case 6:
       kRecursionLevels = int(map(value, 0, 1, 0, 6));
@@ -393,7 +410,7 @@ function button_hook_process(index, value) {
       usesMirrors = !(value == 0);
       break;
     case 1:
-      kUseRecursion = !(value == 0);
+      kGravityFeedback = !(value == 0);
       break;
     case 2:
       kWedgeFeedback = !(value == 0);
@@ -407,6 +424,8 @@ function button_hook_process(index, value) {
 // alternate wedges are reflected by inverting the Y scaling
 function applyMirrors()
 {
+  compositeCell.push();
+  // compositeCell.rotate(rot_angle);
   for (let i = 0; i < nbrSides; ++i) {
     // for each reflection, there are two wedges copied (a normal one, and a reflected one)
     compositeCell.push();
@@ -425,9 +444,9 @@ function applyMirrors()
     compositeCell.pop();
     compositeCell.pop();
   }
+  compositeCell.pop();
 
 }
-
 function draw() {
   empty_slider_queue(); // process incoming slider events
   empty_button_queue(); // process incoming button events
@@ -468,10 +487,12 @@ function draw() {
   push();
   background(0);
   translate(width / 2, height / 2);
-  let rot_angle = millis() * 0.00005;
-  rotate(rot_angle);    // rotating of scope as a whole
-  kGrav_x = cos(PI/4 - rot_angle);
-  kGrav_y = sin(PI/4 - rot_angle);
+
+
+
+  // rotate(rot_angle);    // rotating of scope as a whole
+  // kGrav_x = cos(rot_angle);
+  // kGrav_y = sin(rot_angle);
   image(compositeCell, -kWidth/2, -kHeight/2);
   pop();
 }
