@@ -37,6 +37,7 @@ let kBigCircleRadius = kWidth * .04;
 let kSmallCircleRadius = kWidth * .01;
 let kNbrBalls = 200;
 let kVisualRotate = true;
+let kShowFrameRate = false;
 
 class Ball {
     constructor(px, py, radius, color, pts) {
@@ -120,21 +121,26 @@ let kBriPhase = 0;
 let kHuePeriod = 0;
 let kSatPeriod = 0;
 let kBriPeriod = 0;
+const kMin_Period = 0;
+const kMax_Period = 10;
 
+// Randomized color gradients using randomized sin waves
+//
+//
 function initialize_ball_colors() {
   kHuePhase = random(0, 2 * PI);
   kSatPhase = random(0, 2 * PI);
   kBriPhase = random(0, 2 * PI);
-  kHuePeriod = random(0, 5);
-  kSatPeriod = random(0, 3);
-  kBriPeriod = random(0, 10);
+  kHuePeriod = map(pow(random(),2),0,1,kMin_Period, kMax_Period);
+  kSatPeriod = map(pow(random(),2),0,1,kMin_Period, kMax_Period);
+  kBriPeriod = map(random(),0,1,1, kMax_Period);
 }
 
 function get_ball_color(i, kNbrBalls) {
-  // as i goes from 0 to kNbrBalls-1, the hue goes from 0 to 360, the saturation oscillates twice, and the brightness oscillates four times
-  let hue = sin(i * kHuePeriod * PI / kNbrBalls + kHuePhase) * 128 + 128;
-  let sat = cos(i * kSatPeriod * PI / kNbrBalls + kSatPhase) * 128 + 128;
-  let bri = sin(i * kBriPeriod * PI / kNbrBalls + kBriPhase) * 128 + 128;
+  let r = i / kNbrBalls;
+  let hue = sin(r * kHuePeriod * PI + kHuePhase) * 128 + 128;
+  let sat = sin(r * kSatPeriod * PI + kSatPhase) * 128 + 128;
+  let bri = sin(r * kBriPeriod * PI + kBriPhase) * 128 + 128;
   colorMode(HSB, 255, 255, 255);
   let clr = color(hue, sat, bri);
   colorMode(RGB, 255, 255, 255);
@@ -229,6 +235,7 @@ function DrawCell(oc) {
   oc.pop();
   // this provides a blur effect
   oc.filter(BLUR, kBlurAmt);
+  // this makes a glow effect
   oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
   // gravity feedback
   if (!usesMirrors) {
@@ -253,6 +260,7 @@ function setup() {
   myCanvas = createCanvas(kWidth, kWidth, document.getElementById('sketch-canvas'));
   compositeCell = createGraphics(kWidth, kWidth);
   background(0);
+  frameRate(60); // desired frame rate
 
   objectCellWidth = width;
   objectCellHeight = height;
@@ -341,6 +349,9 @@ function button_hook_process(index, value) {
     case 2:
       kVisualRotate = !(value == 0);
       break;
+    case 3:
+      kShowFrameRate = !(value == 0);
+      break;
   }
 }
 
@@ -373,6 +384,11 @@ function applyMirrors()
   compositeCell.pop();
 
 }
+let average_fr = 0;
+let fr_count = 0;
+let fr_total = 0;
+let display_fr = 0;
+
 function draw() {
   empty_slider_queue(); // process incoming slider events
   empty_button_queue(); // process incoming button events
@@ -422,6 +438,20 @@ function draw() {
   // rotate(rot_angle);    // rotating of scope as a whole
   image(compositeCell, -kWidth/2, -kHeight/2);
   pop();
+  if (kShowFrameRate) {
+    fill(255);
+    textSize(16);
+    let fr = frameRate();
+    fr_total += fr;
+    fr_count += 1;
+    if (fr_count > 60) {
+      average_fr = fr_total / fr_count;
+      fr_total = 0;
+      fr_count = 0;
+    }
+    let fr_str = average_fr.toFixed(1);
+    text(fr_str, 10, 20);
+  }
 }
 
 

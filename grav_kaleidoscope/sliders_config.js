@@ -13,7 +13,7 @@ const buttons_cfg = [
     { defaultVal: 1, name: "mirror" },
     { defaultVal: 0, name: "wedge" },
     { defaultVal: 1, name: "down" },
-    { defaultVal: 0, name: "b4" },
+    { defaultVal: 0, name: "fr" },
     { defaultVal: 0, name: "b5" },
     { defaultVal: 0, name: "b6" },
     { defaultVal: 0, name: "b7" },
