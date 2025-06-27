@@ -5,7 +5,7 @@ let kHeight = 512;            // height of graphics
 
 let kBigCircleRadius = kWidth * .045;
 let kSmallCircleRadius = kWidth * .02;
-let kNbrBalls = 100;
+let kNbrBalls = 60;
 let kDamp = 0.985;
 let kGravity = 0.001;
 let kFriction = 0.0;
@@ -44,6 +44,36 @@ class Ball {
         pop();
     }
 }
+
+class Square {
+    constructor(px, py, radius, color) {
+        this.x = px;
+        this.y = py;
+        this.r = radius;
+        this.color = color;
+        let options = {
+            friction: kFriction,
+            restitution: kRestitution,
+            angle: PI/4,
+        }
+        this.body = Bodies.circle(this.x, this.y, this.r, options);
+        Composite.add(world, this.body);
+    }
+    show() {
+        let pos = this.body.position;
+        let angle = this.body.angle;
+        push();
+        noStroke();
+        fill(this.color);
+        translate(pos.x, pos.y);
+        rotate(angle);
+        rectMode(CENTER);
+        strokeWeight(1);
+        rect(0, 0, this.r*2, this.r*2);
+        pop();
+    }
+}
+
 class Boundary {
     constructor(x, y, w, h, a) {
         this.x = x;
@@ -110,7 +140,11 @@ function setup()
     let y = height/2 + sin(angle) * dist;
     let radius = random(kSmallCircleRadius, kBigCircleRadius);
     let clr = color(random(255), random(255), random(255));
-    balls.push(new Ball(x, y, radius, clr));
+    if (random(1) < 0.5) {
+      balls.push(new Ball(x, y, radius, clr));
+    } else {
+      balls.push(new Square(x, y, radius, clr));
+    }
   }
   last_rotation_millis = millis();
 }

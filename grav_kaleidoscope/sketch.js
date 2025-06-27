@@ -36,6 +36,7 @@ let kRecursionScale = 0.66;
 let kBigCircleRadius = kWidth * .04;
 let kSmallCircleRadius = kWidth * .01;
 let kNbrBalls = 200;
+let kVisualRotate = true;
 
 class Ball {
     constructor(px, py, radius, color, pts) {
@@ -46,7 +47,7 @@ class Ball {
         this.color = color;
         this.pts = pts;
         let options = {
-            friction: 0,
+            friction: 0.1,
             restitution: 0.6
         }
         this.body = Bodies.circle(this.x, this.y, this.r, options);
@@ -70,7 +71,8 @@ class Ball {
             let angle = i * angleStep;
             let x = cos(angle) * outerRadius;
             let y = sin(angle) * outerRadius;
-            ctx.vertex(x, y);   
+            ctx.vertex(x, y);
+            angle += angleStep/2;
             x = cos(angle) * innerRadius;
             y = sin(angle) * innerRadius;
             ctx.vertex(x, y); 
@@ -104,6 +106,7 @@ class Boundary {
         ctx.rotate(angle);
         ctx.rectMode(CENTER);
         ctx.fill(0x25);
+        ctx.noStroke();
         ctx.rect(0, 0, this.w, this.h);
         ctx.pop();
     }
@@ -111,13 +114,27 @@ class Boundary {
 let balls = [];
 let boundaries = [];
 
+let kHuePhase = 0;
+let kSatPhase = 0;
+let kBriPhase = 0;
+let kHuePeriod = 0;
+let kSatPeriod = 0;
+let kBriPeriod = 0;
 
+function initialize_ball_colors() {
+  kHuePhase = random(0, 2 * PI);
+  kSatPhase = random(0, 2 * PI);
+  kBriPhase = random(0, 2 * PI);
+  kHuePeriod = random(0, 5);
+  kSatPeriod = random(0, 3);
+  kBriPeriod = random(0, 10);
+}
 
 function get_ball_color(i, kNbrBalls) {
   // as i goes from 0 to kNbrBalls-1, the hue goes from 0 to 360, the saturation oscillates twice, and the brightness oscillates four times
-  let hue = sin(i * 4 * PI / kNbrBalls) * 128 + 128;
-  let sat = cos(i * 2 * PI / kNbrBalls) * 128 + 128;
-  let bri = sin(i * 8 * PI / kNbrBalls) * 128 + 128;
+  let hue = sin(i * kHuePeriod * PI / kNbrBalls + kHuePhase) * 128 + 128;
+  let sat = cos(i * kSatPeriod * PI / kNbrBalls + kSatPhase) * 128 + 128;
+  let bri = sin(i * kBriPeriod * PI / kNbrBalls + kBriPhase) * 128 + 128;
   colorMode(HSB, 255, 255, 255);
   let clr = color(hue, sat, bri);
   colorMode(RGB, 255, 255, 255);
@@ -129,17 +146,19 @@ function setup_balls() {
     console.log("engine gravity scale", engine.gravity.scale);
 
     world = engine.world;
-  let nbr_boundaries = 12;
+  let nbr_boundaries = 24;
   let object_cell_radius = scopeRadius * 1.1;
   let circumference = 2 * PI * object_cell_radius;
-  let boundary_div = circumference / nbr_boundaries;
+  let boundary_div = 5 + circumference / nbr_boundaries;
+  let boundary_thickness = 10;
   for (let i = 0; i < nbr_boundaries; ++i) {
     let angle = i * 2 * PI / nbr_boundaries;
     let x = width/2 + cos(angle) * object_cell_radius;
     let y = height/2 + sin(angle) * object_cell_radius;
-    boundaries.push(new Boundary(x, y, boundary_div, 10, angle+PI/2));
+    boundaries.push(new Boundary(x, y, boundary_div, boundary_thickness, angle+PI/2));
   }
   console.log("kNbrBalls", kNbrBalls);
+  initialize_ball_colors();
   for (let i = 0; i < kNbrBalls; ++i) {
     let ang = random(0, 2 * PI);
     let dist = random(10, scopeRadius-10);
@@ -152,7 +171,6 @@ function setup_balls() {
   }
 
 }
-
 
 function setup_mirror() {
   mirrorRadians = 2 * PI / (nbrSides * 2);
@@ -213,13 +231,21 @@ function DrawCell(oc) {
   oc.filter(BLUR, kBlurAmt);
   oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
   // gravity feedback
-  // if (!usesMirrors) {
-  //   oc.push();
-  //   oc.translate(width / 2, height / 2);
-  //   oc.stroke(255, 255, 255);
-  //   oc.line(0, 0, engine.gravity.x * kBigCircleRadius / 2, engine.gravity.y * kBigCircleRadius / 2);
-  //   oc.pop();
-  // }
+  if (!usesMirrors) {
+    oc.push();
+    oc.translate(width / 2, height / 2);
+    oc.stroke(255, 255, 255);
+    let line_length = 100000 * engine.gravity.scale;
+    let lx = engine.gravity.x * line_length;
+    let ly = engine.gravity.y * line_length;
+    oc.line(0, 0, lx, ly);
+    let angle = atan2(ly, lx);
+    let arrow_length = 10;
+    let arrow_angle = PI*4/5;
+    oc.line(lx, ly, lx + cos(angle + arrow_angle) * arrow_length, ly + sin(angle + arrow_angle) * arrow_length);
+    oc.line(lx, ly, lx + cos(angle - arrow_angle) * arrow_length, ly + sin(angle - arrow_angle) * arrow_length);
+    oc.pop();
+  }
 }
 
 function setup() {
@@ -312,6 +338,9 @@ function button_hook_process(index, value) {
     case 1:
       kWedgeFeedback = !(value == 0);
       break;
+    case 2:
+      kVisualRotate = !(value == 0);
+      break;
   }
 }
 
@@ -386,7 +415,9 @@ function draw() {
   translate(width / 2, height / 2);
 
   let kGravAngle = atan2(engine.gravity.y, engine.gravity.x);
-  rotate(PI/2-kGravAngle);
+  if (kVisualRotate) {  
+    rotate(PI/2-kGravAngle);
+  }
 
   // rotate(rot_angle);    // rotating of scope as a whole
   image(compositeCell, -kWidth/2, -kHeight/2);
