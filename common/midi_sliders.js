@@ -726,6 +726,9 @@ document.addEventListener('DOMContentLoaded', () => {
   myCanvas.addEventListener('mousemove', handleMouseMove);
   myCanvas.addEventListener('mouseup', handleMouseUp);
   myCanvas.addEventListener('mouseleave', handleMouseUp);
+  myCanvas.addEventListener('touchstart', handleMouseDown);
+  myCanvas.addEventListener('touchmove', handleMouseMove);
+  myCanvas.addEventListener('touchend', handleMouseUp);
   
   // Initialize sliders (moved up by 50 pixels)
   let slider_x = (150-128)/2;

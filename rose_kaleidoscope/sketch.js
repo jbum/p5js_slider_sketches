@@ -30,6 +30,8 @@ let kWedgeFeedback = false;
 let kUseRecursion = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
+let kShowFrameRate = false;
+
 let rStart;
 const oc_padding = 4; // object cell padding -- this helps reduce edge artifacts in the center and outer rim
 
@@ -103,6 +105,7 @@ function setup() {
   objectCellWidth = width;
   objectCellHeight = height;
   objectCell = createGraphics(objectCellWidth, objectCellHeight);
+  frameRate(60); // desired frame rate
 
 
   ellipseMode(RADIUS);
@@ -189,6 +192,9 @@ function button_hook_process(index, value) {
     case 2:
       kWedgeFeedback = !(value == 0);
       break;
+    case 3:
+      kShowFrameRate = !(value == 0);
+      break;
   }
 }
 
@@ -218,6 +224,10 @@ function applyMirrors()
   }
 
 }
+
+let average_fr = 0;
+let fr_count = 0;
+let fr_total = 0;
 
 function draw() {
   empty_slider_queue(); // process incoming slider events
@@ -262,6 +272,25 @@ function draw() {
   rotate(millis() * 0.00005);    // rotating of scope as a whole
   image(compositeCell, -kWidth/2, -kHeight/2);
   pop();
+
+  let fr = frameRate();
+  fr_total += fr;
+  fr_count += 1;
+  if (fr_count > 60) {
+    average_fr = fr_total / fr_count;
+    fr_total = 0;
+    fr_count = 0;
+  }
+
+
+  if (kShowFrameRate) {
+    push();
+    fill(255);
+    textSize(16);
+    let fr_str = average_fr.toFixed(1);
+    text(fr_str, 10, 20);
+    pop();
+  }
 }
 
 

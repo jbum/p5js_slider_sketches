@@ -387,7 +387,6 @@ function applyMirrors()
 let average_fr = 0;
 let fr_count = 0;
 let fr_total = 0;
-let display_fr = 0;
 
 function draw() {
   empty_slider_queue(); // process incoming slider events
@@ -438,19 +437,21 @@ function draw() {
   // rotate(rot_angle);    // rotating of scope as a whole
   image(compositeCell, -kWidth/2, -kHeight/2);
   pop();
+  let fr = frameRate();
+  fr_total += fr;
+  fr_count += 1;
+  if (fr_count > 60) {
+    average_fr = fr_total / fr_count;
+    fr_total = 0;
+    fr_count = 0;
+  }
   if (kShowFrameRate) {
+    pop();
     fill(255);
     textSize(16);
-    let fr = frameRate();
-    fr_total += fr;
-    fr_count += 1;
-    if (fr_count > 60) {
-      average_fr = fr_total / fr_count;
-      fr_total = 0;
-      fr_count = 0;
-    }
     let fr_str = average_fr.toFixed(1);
     text(fr_str, 10, 20);
+    push();
   }
 }
 
