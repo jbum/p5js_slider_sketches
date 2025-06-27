@@ -38,6 +38,7 @@ let kSmallCircleRadius = kWidth * .01;
 let kNbrBalls = 200;
 let kVisualRotate = true;
 let kShowFrameRate = false;
+let kShowColorFeedback = false;
 
 class Ball {
     constructor(px, py, radius, color, pts) {
@@ -145,6 +146,54 @@ function get_ball_color(i, kNbrBalls) {
   let clr = color(hue, sat, bri);
   colorMode(RGB, 255, 255, 255);
   return clr;
+}
+
+function show_color_feedback() {
+  push();
+  let graph_width = width - 20;
+  let graph_x = (width - graph_width) / 2;
+  let graph_y = 10;
+  let element_height = 50;
+  let graph_height = element_height * 3;
+  noStroke();
+  fill(0, 0, 0, 128);
+  rect(graph_x, graph_y, graph_width, graph_height);
+  fill(255);
+  let phases = [kHuePhase, kSatPhase, kBriPhase];
+  let periods = [kHuePeriod, kSatPeriod, kBriPeriod];
+  let labels = ["Hue", "Saturation", "Brightness"];
+  for (let j = 0; j < graph_width; j += 1) {
+    let clr = get_ball_color(j, graph_width);
+    fill(clr);
+    rect(graph_x + j, graph_y, 1, element_height*3);
+  }
+  for (let i = 0; i < 3; ++i) {
+    let phase = phases[i];
+    let period = periods[i];
+    let label = labels[i];
+    let oy = graph_y + element_height * i + element_height/2;
+    let ox = graph_x;
+    // plot appropriate sine wave along the graph , starting at graph_x, and going to graph_x + graph_width
+    stroke(255);
+    noFill();
+    beginShape();
+    for (let j = 0; j < graph_width; j += 1) {
+      let r = j / graph_width;
+      let v = sin(phase + r*2*PI*period) * element_height*.35;
+      vertex(ox+j, oy+v);
+    }
+    endShape();
+    fill(255);
+    noStroke();
+    textSize(12);
+    text(label, ox, oy + 5);
+  textAlign(RIGHT);
+  text("Phase: " + nf(phase, 0, 2), ox + graph_width - 5, oy - 5);
+  text("Period: " + nf(period, 0, 2), ox + graph_width - 5, oy + 10);
+  textAlign(LEFT);
+
+  }
+  pop();
 }
 
 function setup_balls() {
@@ -352,6 +401,9 @@ function button_hook_process(index, value) {
     case 3:
       kShowFrameRate = !(value == 0);
       break;
+    case 4:
+      kShowColorFeedback = !(value == 0);
+      break;
   }
 }
 
@@ -444,6 +496,9 @@ function draw() {
     average_fr = fr_total / fr_count;
     fr_total = 0;
     fr_count = 0;
+  }
+  if (kShowColorFeedback) {
+    show_color_feedback();
   }
   if (kShowFrameRate) {
     pop();
