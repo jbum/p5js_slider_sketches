@@ -119,11 +119,11 @@ let boundaries = [];
 let kHuePhase = 0;
 let kSatPhase = 0;
 let kBriPhase = 0;
-let kHuePeriod = 0;
-let kSatPeriod = 0;
-let kBriPeriod = 0;
-const kMin_Period = 0;
-const kMax_Period = 10;
+let kHueFreq = 0;
+let kSatFreq = 0;
+let kBriFreq = 0;
+const kMin_Freq = 0;
+const kMax_Freq = 10;
 
 // Randomized color gradients using randomized sin waves
 //
@@ -132,16 +132,16 @@ function initialize_ball_colors() {
   kHuePhase = random(0, 2 * PI);
   kSatPhase = random(0, 2 * PI);
   kBriPhase = random(0, 2 * PI);
-  kHuePeriod = map(pow(random(),2),0,1,kMin_Period, kMax_Period);
-  kSatPeriod = map(pow(random(),2),0,1,kMin_Period, kMax_Period);
-  kBriPeriod = map(random(),0,1,1, kMax_Period);
+  kHueFreq = map(pow(random(),2),0,1,kMin_Freq, kMax_Freq);
+  kSatFreq = map(pow(random(),2),0,1,kMin_Freq, kMax_Freq);
+  kBriFreq = map(random(),0,1,1, kMax_Freq);
 }
 
 function get_ball_color(i, kNbrBalls) {
   let r = i / kNbrBalls;
-  let hue = sin(r * kHuePeriod * PI + kHuePhase) * 128 + 128;
-  let sat = sin(r * kSatPeriod * PI + kSatPhase) * 128 + 128;
-  let bri = sin(r * kBriPeriod * PI + kBriPhase) * 128 + 128;
+  let hue = sin(r * kHueFreq * PI + kHuePhase) * 128 + 128;
+  let sat = sin(r * kSatFreq * PI + kSatPhase) * 128 + 128;
+  let bri = sin(r * kBriFreq * PI + kBriPhase) * 128 + 128;
   colorMode(HSB, 255, 255, 255);
   let clr = color(hue, sat, bri);
   colorMode(RGB, 255, 255, 255);
@@ -152,45 +152,50 @@ function show_color_feedback() {
   push();
   let graph_width = width - 20;
   let graph_x = (width - graph_width) / 2;
-  let graph_y = 10;
   let element_height = 50;
+  let graph_y = element_height;
   let graph_height = element_height * 3;
   noStroke();
   fill(0, 0, 0, 128);
   rect(graph_x, graph_y, graph_width, graph_height);
   fill(255);
   let phases = [kHuePhase, kSatPhase, kBriPhase];
-  let periods = [kHuePeriod, kSatPeriod, kBriPeriod];
+  let freqs = [kHueFreq, kSatFreq, kBriFreq];
   let labels = ["Hue", "Saturation", "Brightness"];
   for (let j = 0; j < graph_width; j += 1) {
     let clr = get_ball_color(j, graph_width);
     fill(clr);
-    rect(graph_x + j, graph_y, 1, element_height*3);
+    rect(graph_x + j, graph_y-element_height, 1, element_height);
   }
   for (let i = 0; i < 3; ++i) {
     let phase = phases[i];
-    let period = periods[i];
+    let freq = freqs[i];
     let label = labels[i];
     let oy = graph_y + element_height * i + element_height/2;
     let ox = graph_x;
     // plot appropriate sine wave along the graph , starting at graph_x, and going to graph_x + graph_width
+    stroke(128);
+    // axis line
+    line(ox, oy, ox + graph_width, oy);
+    // sine wave
     stroke(255);
+    strokeWeight(2);
     noFill();
     beginShape();
     for (let j = 0; j < graph_width; j += 1) {
       let r = j / graph_width;
-      let v = sin(phase + r*2*PI*period) * element_height*.35;
+      let v = -sin(phase + r*PI*freq) * element_height*.35;
       vertex(ox+j, oy+v);
     }
     endShape();
-    fill(255);
+    fill(128);
     noStroke();
     textSize(12);
     text(label, ox, oy + 5);
-  textAlign(RIGHT);
-  text("Phase: " + nf(phase, 0, 2), ox + graph_width - 5, oy - 5);
-  text("Period: " + nf(period, 0, 2), ox + graph_width - 5, oy + 10);
-  textAlign(LEFT);
+    textAlign(RIGHT);
+    text("Phase: " + nf(phase, 0, 2), ox + graph_width - 5, oy - 5);
+    text("Freq: " + nf(freq, 0, 2), ox + graph_width - 5, oy + 10);
+    textAlign(LEFT);
 
   }
   pop();
@@ -201,29 +206,29 @@ function setup_balls() {
     console.log("engine gravity scale", engine.gravity.scale);
 
     world = engine.world;
-  let nbr_boundaries = 24;
-  let object_cell_radius = scopeRadius * 1.1;
-  let circumference = 2 * PI * object_cell_radius;
-  let boundary_div = 5 + circumference / nbr_boundaries;
-  let boundary_thickness = 10;
-  for (let i = 0; i < nbr_boundaries; ++i) {
-    let angle = i * 2 * PI / nbr_boundaries;
-    let x = width/2 + cos(angle) * object_cell_radius;
-    let y = height/2 + sin(angle) * object_cell_radius;
-    boundaries.push(new Boundary(x, y, boundary_div, boundary_thickness, angle+PI/2));
-  }
-  console.log("kNbrBalls", kNbrBalls);
-  initialize_ball_colors();
-  for (let i = 0; i < kNbrBalls; ++i) {
-    let ang = random(0, 2 * PI);
-    let dist = random(10, scopeRadius-10);
-    let x = width/2 + cos(ang) * dist;
-    let y = height/2 + sin(ang) * dist;
-    let radius = map(pow(random(1), 2), 0, 1, kSmallCircleRadius, kBigCircleRadius);
-    let pts = int(map(pow(random(1), 2), 0, 1, 4, 13));
-    let clr = get_ball_color(i, kNbrBalls);
-    balls.push(new Ball(x, y, radius, clr, pts));
-  }
+    let nbr_boundaries = 24;
+    let object_cell_radius = scopeRadius * 1.1;
+    let circumference = 2 * PI * object_cell_radius;
+    let boundary_div = 5 + circumference / nbr_boundaries;
+    let boundary_thickness = 20;
+    for (let i = 0; i < nbr_boundaries; ++i) {
+        let angle = i * 2 * PI / nbr_boundaries;
+        let x = width/2 + cos(angle) * object_cell_radius;
+        let y = height/2 + sin(angle) * object_cell_radius;
+        boundaries.push(new Boundary(x, y, boundary_div, boundary_thickness, angle+PI/2));
+    }
+    console.log("kNbrBalls", kNbrBalls);
+    initialize_ball_colors();
+    for (let i = 0; i < kNbrBalls; ++i) {
+        let ang = random(0, 2 * PI);
+        let dist = random(10, scopeRadius-10);
+        let x = width/2 + cos(ang) * dist;
+        let y = height/2 + sin(ang) * dist;
+        let radius = map(pow(random(1), 2), 0, 1, kSmallCircleRadius, kBigCircleRadius);
+        let pts = int(map(pow(random(1), 2), 0, 1, 4, 13));
+        let clr = get_ball_color(i, kNbrBalls);
+        balls.push(new Ball(x, y, radius, clr, pts));
+    }
 
 }
 
@@ -366,7 +371,7 @@ function slider_hook_process(slider_index, value) {
       engine.gravity.scale = kGravity;
       break;
     case 7:
-      kRotationSpeed = map(value, 0, 1, 0,0.1);
+      kRotationSpeed = map(value, 0, 1, 0, 0.02);
       break;
   }
 }

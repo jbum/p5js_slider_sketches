@@ -19,15 +19,13 @@ let world;
 
 class Ball {
     constructor(px, py, radius, color) {
-        this.x = px;
-        this.y = py;
-        this.r = radius;
-        this.color = color;
+      this.color = color;
+      this.radius = radius;
         let options = {
             friction: kFriction,
             restitution: kRestitution
         }
-        this.body = Bodies.circle(this.x, this.y, this.r, options);
+        this.body = Bodies.circle(px, py, radius, options);
         Composite.add(world, this.body);
     }
     show() {
@@ -40,44 +38,13 @@ class Ball {
         rotate(angle);
         rectMode(CENTER);
         strokeWeight(1);
-        ellipse(0, 0, this.r);
-        pop();
-    }
-}
-
-class Square {
-    constructor(px, py, radius, color) {
-        this.x = px;
-        this.y = py;
-        this.r = radius;
-        this.color = color;
-        let options = {
-            friction: kFriction,
-            restitution: kRestitution,
-            angle: PI/4,
-        }
-        this.body = Bodies.circle(this.x, this.y, this.r, options);
-        Composite.add(world, this.body);
-    }
-    show() {
-        let pos = this.body.position;
-        let angle = this.body.angle;
-        push();
-        noStroke();
-        fill(this.color);
-        translate(pos.x, pos.y);
-        rotate(angle);
-        rectMode(CENTER);
-        strokeWeight(1);
-        rect(0, 0, this.r*2, this.r*2);
+        ellipse(0, 0, this.radius);
         pop();
     }
 }
 
 class Boundary {
     constructor(x, y, w, h, a) {
-        this.x = x;
-        this.y = y;
         this.w = w;
         this.h = h;
         let options = {
@@ -86,7 +53,7 @@ class Boundary {
             angle: a,
             isStatic: true
         }
-        this.body = Bodies.rectangle(this.x, this.y, this.w, this.h, options);
+        this.body = Bodies.rectangle(x, y, this.w, this.h, options);
         Composite.add(world, this.body);
     }
 
@@ -115,10 +82,9 @@ function setup()
   background(0);
   ellipseMode(RADIUS);
 
-    engine = Engine.create();
-    console.log("engine gravity scale", engine.gravity.scale);
-
+  engine = Engine.create();
   world = engine.world;
+
   let boundary_thickness = 10;
   let boundary_radius = (width-boundary_thickness)/2;
   let boundary_sides = 24;
@@ -140,11 +106,7 @@ function setup()
     let y = height/2 + sin(angle) * dist;
     let radius = random(kSmallCircleRadius, kBigCircleRadius);
     let clr = color(random(255), random(255), random(255));
-    if (random(1) < 0.5) {
-      balls.push(new Ball(x, y, radius, clr));
-    } else {
-      balls.push(new Square(x, y, radius, clr));
-    }
+    balls.push(new Ball(x, y, radius, clr));
   }
   last_rotation_millis = millis();
 }
@@ -180,7 +142,7 @@ function slider_hook_process(slider_index, value)
       engine.gravity.scale = kGravity;
       break;
     case 1:
-      kRotationAngle = map(value, 0, 1, -PI,PI);
+      kRotationAngle = map(value, 0, 1, -PI, PI);
       break;
     case 2:
       kFriction = map(value, 0, 1, 0.0, 0.1);
