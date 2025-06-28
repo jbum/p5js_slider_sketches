@@ -6,19 +6,6 @@ const NBR_SHAPES = 8;
 const NBR_GELS = 4;
 const SLOT_WIDTH = 7;
 
-// Slider mappings:
-// 0: Mode (0-4)
-// 1: Rotation RPM (0-3)
-// 2: Color Plate (0-6)
-// 3: Grille (0-6)
-// 4: Stripe (0-2)
-// 5: Preset selector (0-11)
-// 6: Monitor toggle (0/1)
-// 7: Extra - unused
-
-let values = [0, 0.5, 0, 0, 0, 0, 1, 0]; // Default slider values
-let button_values = [0, 0, 0, 0, 0, 0, 0, 0]; // Default button values
-
 let kWidth = 600;  // width of graphics
 let kHeight = 600; // height of graphics
 const msPerFrame = 1000 / 30.0;
@@ -29,7 +16,6 @@ let rpm = 1.6; // - it takes about 10 seconds to do a quarter turn, so 1rpm in 4
 let curGraphic_A_idx = 0;
 let curGraphic_B_idx = 0;
 let curColorGel_idx = 0;
-let lastPreset = 0;
 let isMonitor = false;
 
 // Graphics objects
@@ -93,7 +79,6 @@ function setup() {
   textSize(12);
   
   // Process slider values
-  updateFromSliders();
   console.log("Setup Z");
 }
 
@@ -109,40 +94,6 @@ function toggle_sketch_size() {
   graphic_B = getGraphic_B(curGraphic_B_idx);
 }
 
-function updateFromSliders() {
-  // Map slider values to simulation parameters
-  mode = floor(map(values[0], 0, 1.01, 0, 5));
-  rpm = map(values[1], 0, 1, 0, 3);
-  
-  // Only update these if they've changed
-  let newCplate = floor(map(values[2], 0, 1.01, 0, NBR_SHAPES));
-  let newGrille = floor(map(values[3], 0, 1.01, 0, NBR_SHAPES));
-  let newStripe = floor(map(values[4], 0, 1.01, 0, NBR_GELS));
-  
-  // Preset selection
-  let newPreset = floor(map(values[5], 0, 1, 0, goodPresets.length-1));
-  if (newPreset !== lastPreset) {
-    lastPreset = newPreset;
-    [curGraphic_A_idx, curGraphic_B_idx, curColorGel_idx] = goodPresets[lastPreset];
-    updateDiscs();
-    
-    // Update sliders to match preset
-    values[2] = map(curGraphic_A_idx, 0, NBR_SHAPES-1, 0, 1);
-    values[3] = map(curGraphic_B_idx, 0, NBR_SHAPES-1, 0, 1);
-    values[4] = map(curColorGel_idx, 0, NBR_GELS-1, 0, 1);
-
-    const label = `${goodPresets[lastPreset][3]} (${curGraphic_A_idx}/${curGraphic_B_idx}/${curColorGel_idx})`;
-    document.getElementById('sketch-label').textContent = label;
-  } else {
-    // Check for individual parameter changes
-    if (newCplate !== curGraphic_A_idx || newGrille !== curGraphic_B_idx || newStripe !== curColorGel_idx) {
-      curGraphic_A_idx = newCplate;
-      curGraphic_B_idx = newGrille;
-      curColorGel_idx = newStripe;
-      updateDiscs();
-    }
-  }
-}
 
 function updateDiscs() {
   gelDisc = getColorGel(curColorGel_idx);
@@ -164,8 +115,35 @@ function empty_slider_queue() {
 }
 
 function slider_hook_process(slider_index, value) {
-  values[slider_index] = value;
-  updateFromSliders();
+  // values[slider_index] = value;
+  switch (slider_index) {
+  case 0:
+    mode = floor(map(value, 0, 1.01, 0, 5));
+    break;
+  case 1:
+    rpm = map(value, 0, 1, 0, 3);
+    break;
+  case 2:
+    curGraphic_A_idx = floor(map(value, 0, 1.01, 0, NBR_SHAPES));
+    updateDiscs();
+    break;
+  case 3:
+    curGraphic_B_idx = floor(map(value, 0, 1.01, 0, NBR_SHAPES));
+    updateDiscs();
+    break;
+  case 4:
+    curColorGel_idx = floor(map(value, 0, 1.01, 0, NBR_GELS));
+    console.log("color gel idx", curColorGel_idx, "value", value);
+    updateDiscs();
+    break;
+  case 5:
+    let preset_idx = floor(map(value, 0, 1, 0, goodPresets.length - 1));
+    [curGraphic_A_idx, curGraphic_B_idx, curColorGel_idx] = goodPresets[preset_idx];
+    const label = `${goodPresets[preset_idx][3]} (${curGraphic_A_idx}/${curGraphic_B_idx}/${curColorGel_idx})`;
+    document.getElementById('sketch-label').textContent = label;
+    updateDiscs();
+    break;
+  }
 }
 
 let button_queue = [];
@@ -182,7 +160,7 @@ function empty_button_queue() {
 }
 
 function button_hook_process(index, value) {
-  button_values[index] = value;
+  // button_values[index] = value;
   
   if (index == 0) {
     isMonitor = value > 0;
@@ -294,7 +272,7 @@ function draw() {
     
     const mdiv = 5.0; // Size divisor for the preview
     
-    // Draw rotating color mask preview
+    // Draw rotated/colorized graphic_A preview
     push();
     fill(255);
     translate(0, height - height / mdiv);
@@ -310,13 +288,6 @@ function draw() {
     // Draw grille preview
     image(graphic_B, width - width / mdiv, height - height / mdiv, width / mdiv, height / mdiv);
     
-    // Draw label with current preset info
-    // fill(255);
-    // stroke(255);
-    // textSize(12);
-    // textAlign(CENTER);
-    // const label = `${goodPresets[lastPreset][3]} (${curGraphic_A_idx}/${curGraphic_B_idx}/${curColorGel_idx})`;
-    // text('xxxxxxxxxxxxx', 10, 10);  // width / 2, height - 4);
     pop();
   }
   // noLoop();
