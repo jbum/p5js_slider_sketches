@@ -3,7 +3,7 @@ const { Engine, World, Bodies, Composite, Constraint } = Matter;
 let kWidth = 512;             // width of graphics
 let kHeight = 512;            // height of graphics
 
-let kNbrRings = 150;
+let kNbrRings = 140;
 let kBeadRadius = kWidth * .01;
 let kDamp = 0.985;
 let kGravity = 0.001;

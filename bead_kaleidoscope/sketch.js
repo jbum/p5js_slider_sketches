@@ -110,13 +110,16 @@ const kMin_Freq = 0;
 const kMax_Freq = 10;
 
 function make_ring(nbr_balls, ball_radius, cx, cy, clr) {
-  console.log("make_ring", nbr_balls);
+  // console.log("make_ring", nbr_balls);
   let cluster_radius = ball_radius * 0.2 * nbr_balls;
   let cballs = [];
+  let ring_spring_length = ball_radius * 2;
+  let ball_angle = 2 * PI / nbr_balls;
+
   for (let i = 0; i < nbr_balls; ++i) {
     let r = i / nbr_balls;
-    let x = cx + cos(r * 2 * PI) * cluster_radius;
-    let y = cy + sin(r * 2 * PI) * cluster_radius;
+    let x = cx + cos(i * ball_angle) * cluster_radius;
+    let y = cy + sin(i * ball_angle) * cluster_radius;
     let ball = new Ball(x, y, ball_radius, clr);
     balls.push(ball);
     cballs.push(ball);
@@ -125,7 +128,7 @@ function make_ring(nbr_balls, ball_radius, cx, cy, clr) {
     let constraint = Constraint.create({
       bodyA: cballs[i].body,
       bodyB: cballs[(i + 1) % nbr_balls].body,
-      length: ball_radius * 2,
+      length: ring_spring_length,
       stiffness: kStiffness
     });
     Composite.add(world, constraint);
