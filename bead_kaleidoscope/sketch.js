@@ -36,7 +36,7 @@ let kWedgeFeedback = false;
 let kUseRecursion = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
-let kStiffness = 0.1;
+let kStiffness = 0.25;
 let kVisualRotate = true;
 let kShowFrameRate = false;
 let kShowColorFeedback = false;
@@ -269,7 +269,7 @@ function setup_balls() {
         let x = width/2 + cos(ang) * dist;
         let y = height / 2 + sin(ang) * dist;
         let rad = map(pow(random(1),3),0,1,kMinBeadRadius, kMaxBeadRadius);
-      if (random() < 0.5) {
+      if (random() < 0.66) {
           let bead_color = get_ball_color(i, kNbrRings);
           make_ring(3 + (random(1) < 0.5), rad, x, y, bead_color);
         } else {  
