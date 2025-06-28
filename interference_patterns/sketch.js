@@ -2,7 +2,8 @@
 // Original was for Processing/Python mode
 
 // Port of plates.py functions merged into sketch.js
-const NBR_SHAPES = 7;
+const NBR_SHAPES = 8;
+const NBR_GELS = 4;
 const SLOT_WIDTH = 7;
 
 // Slider mappings:
@@ -25,15 +26,15 @@ const msPerFrame = 1000 / 30.0;
 // Simulation variables
 let mode = 0;
 let rpm = 1.6; // - it takes about 10 seconds to do a quarter turn, so 1rpm in 40 seconds
-let curCplate = 0;
-let curGrille = 0;
-let curStripe = 0;
+let curGraphic_A_idx = 0;
+let curGraphic_B_idx = 0;
+let curColorGel_idx = 0;
 let lastPreset = 0;
 let isMonitor = false;
 
 // Graphics objects
-let colorMask;
-let grilleDisc;
+let graphic_A;
+let graphic_B;
 let gelDisc;
 let luxShader;
 let luxShader2;
@@ -45,15 +46,16 @@ const goodPresets = [
   [0, 0, 0, "rowe/ami"],
   [1, 2, 1, "expanding spiral"],
   [2, 2, 0, "starburst"],
-  [3, 3, 1, "banded star"], // starburst"
+  [3, 3, 1, "banded star"],
   [1, 0, 1, "ami galaxy"],
   [1, 4, 0, "expanding fib"],
   [3, 2, 2, "inward draw"],
-  [2, 3, 1, "outward draw"], // starburst"
+  [2, 3, 1, "outward draw"],
   [1, 3, 1, "slow expand"],
   [0, 3, 1, "rowe expand"],
   [4, 3, 1, "fib expand"],
-  [2, 0, 0, "spoke/rowe"]
+  [2, 0, 0, "spoke/rowe"],
+  [7, 7, 3, "tricorder"]
 ];
 
 function preload() {
@@ -78,13 +80,13 @@ function preload() {
 
 function setup() {
   console.log("Setup A");
-  let canvas = createCanvas(kWidth, kHeight, WEBGL, document.getElementById('sketch-canvas'));
+  createCanvas(kWidth, kHeight, WEBGL);
   pixelDensity(1); // Ensure consistent pixel density
   
   // Initialize graphics
-  gelDisc = getColorGel(curStripe);
-  colorMask = getColorMask(curCplate, gelDisc);
-  grilleDisc = getGrille(curGrille);
+  gelDisc = getColorGel(curColorGel_idx);
+  graphic_A = getGraphic_A(curGraphic_A_idx, gelDisc);
+  graphic_B = getGraphic_B(curGraphic_B_idx);
   
   // Set default text font
   textFont('Helvetica');
@@ -102,47 +104,50 @@ function toggle_sketch_size() {
   kWidth = kWidth === small_size ? large_size : small_size;
   kHeight = kWidth;
   resizeCanvas(kWidth, kHeight);
-  gelDisc = getColorGel(curStripe);
-  colorMask = getColorMask(curCplate, gelDisc);
-  grilleDisc = getGrille(curGrille);
+  gelDisc = getColorGel(curColorGel_idx);
+  graphic_A = getGraphic_A(curGraphic_A_idx, gelDisc);
+  graphic_B = getGraphic_B(curGraphic_B_idx);
 }
 
 function updateFromSliders() {
   // Map slider values to simulation parameters
-  mode = floor(map(values[0], 0, 1, 0, 5));
+  mode = floor(map(values[0], 0, 1.01, 0, 5));
   rpm = map(values[1], 0, 1, 0, 3);
   
   // Only update these if they've changed
-  let newCplate = floor(map(values[2], 0, 1, 0, NBR_SHAPES));
-  let newGrille = floor(map(values[3], 0, 1, 0, NBR_SHAPES));
-  let newStripe = floor(map(values[4], 0, 1, 0, 3));
+  let newCplate = floor(map(values[2], 0, 1.01, 0, NBR_SHAPES));
+  let newGrille = floor(map(values[3], 0, 1.01, 0, NBR_SHAPES));
+  let newStripe = floor(map(values[4], 0, 1.01, 0, NBR_GELS));
   
   // Preset selection
   let newPreset = floor(map(values[5], 0, 1, 0, goodPresets.length-1));
   if (newPreset !== lastPreset) {
     lastPreset = newPreset;
-    [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
+    [curGraphic_A_idx, curGraphic_B_idx, curColorGel_idx] = goodPresets[lastPreset];
     updateDiscs();
     
     // Update sliders to match preset
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
-    values[4] = map(curStripe, 0, 2, 0, 1);
+    values[2] = map(curGraphic_A_idx, 0, NBR_SHAPES-1, 0, 1);
+    values[3] = map(curGraphic_B_idx, 0, NBR_SHAPES-1, 0, 1);
+    values[4] = map(curColorGel_idx, 0, NBR_GELS-1, 0, 1);
+
+    const label = `${goodPresets[lastPreset][3]} (${curGraphic_A_idx}/${curGraphic_B_idx}/${curColorGel_idx})`;
+    document.getElementById('sketch-label').textContent = label;
   } else {
     // Check for individual parameter changes
-    if (newCplate !== curCplate || newGrille !== curGrille || newStripe !== curStripe) {
-      curCplate = newCplate;
-      curGrille = newGrille;
-      curStripe = newStripe;
+    if (newCplate !== curGraphic_A_idx || newGrille !== curGraphic_B_idx || newStripe !== curColorGel_idx) {
+      curGraphic_A_idx = newCplate;
+      curGraphic_B_idx = newGrille;
+      curColorGel_idx = newStripe;
       updateDiscs();
     }
   }
 }
 
 function updateDiscs() {
-  gelDisc = getColorGel(curStripe);
-  colorMask = getColorMask(curCplate, gelDisc);
-  grilleDisc = getGrille(curGrille);
+  gelDisc = getColorGel(curColorGel_idx);
+  graphic_A = getGraphic_A(curGraphic_A_idx, gelDisc);
+  graphic_B = getGraphic_B(curGraphic_B_idx);
 }
 
 let slider_queue = [];
@@ -198,7 +203,7 @@ function draw() {
   
   // Draw the color mask with rotation
   push();
-  if (curCplate === 0) { // offset for JAL color plate
+  if (curGraphic_A_idx === 0) { // offset for JAL color plate
     translate(-width * 0.04, 0);
   }
   
@@ -208,7 +213,7 @@ function draw() {
   
   // Draw the color mask
   imageMode(CENTER);
-    image(colorMask, 0, 0);
+    image(graphic_A, 0, 0);
   pop();
   
   // Apply different blending based on mode
@@ -217,7 +222,7 @@ function draw() {
     push();
     tint(255, 32);
     imageMode(CENTER);
-    image(grilleDisc, 0, 0);
+    image(graphic_B, 0, 0);
     noTint();
     pop();
   }
@@ -228,12 +233,12 @@ function draw() {
       push();
       blendMode(DARKEST);
       imageMode(CENTER);
-      image(grilleDisc, 0, 0);
+      image(graphic_B, 0, 0);
       pop();
     } else {
       // Just overlay the grille for mode 2
       imageMode(CENTER);
-      image(grilleDisc, 0, 0);
+      image(graphic_B, 0, 0);
     }
   }
   
@@ -291,25 +296,27 @@ function draw() {
     
     // Draw rotating color mask preview
     push();
+    fill(255);
     translate(0, height - height / mdiv);
     translate(width / mdiv / 2, height / mdiv / 2);
     rotate(frameCount * msPerFrame * rpmm);
     translate(-width / mdiv / 2, -height / mdiv / 2);
-    image(colorMask, 0, 0, width / mdiv, height / mdiv);
+    image(graphic_A, 0, 0, width / mdiv, height / mdiv);
     pop();
     
     // Draw gel preview
     image(gelDisc, width / 2 - width / mdiv / 2, height - height / mdiv, width / mdiv, height / mdiv);
     
     // Draw grille preview
-    image(grilleDisc, width - width / mdiv, height - height / mdiv, width / mdiv, height / mdiv);
+    image(graphic_B, width - width / mdiv, height - height / mdiv, width / mdiv, height / mdiv);
     
     // Draw label with current preset info
-    fill(255);
-    noStroke();
-    textAlign(CENTER);
-    const label = `${goodPresets[lastPreset][3]} (${curCplate}/${curGrille}/${curStripe})`;
-    text(label, width / 2, height - 4);
+    // fill(255);
+    // stroke(255);
+    // textSize(12);
+    // textAlign(CENTER);
+    // const label = `${goodPresets[lastPreset][3]} (${curGraphic_A_idx}/${curGraphic_B_idx}/${curColorGel_idx})`;
+    // text('xxxxxxxxxxxxx', 10, 10);  // width / 2, height - 4);
     pop();
   }
   // noLoop();
@@ -317,137 +324,79 @@ function draw() {
 
 function keyPressed() {
   // Handle keyboard input (useful for testing)
-  if (key === '0') {
-    mode = 0;
-    values[0] = map(mode, 0, 4, 0, 1);
-  } else if (key === '1') {
-    mode = 1;
-    values[0] = map(mode, 0, 4, 0, 1);
-  } else if (key === '2') {
-    mode = 2;
-    values[0] = map(mode, 0, 4, 0, 1);
-  } else if (key === '3') {
-    mode = 3;
-    values[0] = map(mode, 0, 4, 0, 1);
-  } else if (key === '4') {
-    mode = 4;
-    values[0] = map(mode, 0, 4, 0, 1);
-  } else if (keyCode === LEFT_ARROW) {
-    curGrille = max(0, curGrille - 1);
-    grilleDisc = getGrille(curGrille);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
-  } else if (keyCode === RIGHT_ARROW) {
-    curGrille = (curGrille + 1) % NBR_SHAPES;
-    grilleDisc = getGrille(curGrille);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
-  } else if (key === '[') {
-    curCplate = max(0, curCplate - 1);
-    colorMask = getColorMask(curCplate, gelDisc);
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
-  } else if (key === ']') {
-    curCplate = (curCplate + 1) % NBR_SHAPES;
-    colorMask = getColorMask(curCplate, gelDisc);
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
-  } else if (key === '{') {
-    curStripe = max(0, curStripe - 1);
-    gelDisc = getColorGel(curStripe);
-    colorMask = getColorMask(curCplate, gelDisc);
-    values[4] = map(curStripe, 0, 2, 0, 1);
-  } else if (key === '}') {
-    curStripe = (curStripe + 1) % 3;
-    gelDisc = getColorGel(curStripe);
-    colorMask = getColorMask(curCplate, gelDisc);
-    values[4] = map(curStripe, 0, 2, 0, 1);
-  } else if (keyCode === UP_ARROW) {
-    lastPreset = (lastPreset + 1) % goodPresets.length;
-    [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
-    gelDisc = getColorGel(curStripe);
-    colorMask = getColorMask(curCplate, gelDisc);
-    grilleDisc = getGrille(curGrille);
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
-    values[4] = map(curStripe, 0, 2, 0, 1);
-    values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 1);
-  } else if (keyCode === DOWN_ARROW) {
-    lastPreset = (lastPreset + goodPresets.length - 1) % goodPresets.length;
-    [curCplate, curGrille, curStripe] = goodPresets[lastPreset];
-    gelDisc = getColorGel(curStripe);
-    colorMask = getColorMask(curCplate, gelDisc);
-    grilleDisc = getGrille(curGrille);
-    values[2] = map(curCplate, 0, NBR_SHAPES-1, 0, 1);
-    values[3] = map(curGrille, 0, NBR_SHAPES-1, 0, 1);
-    values[4] = map(curStripe, 0, 2, 0, 1);
-    values[5] = map(lastPreset, 0, goodPresets.length-1, 0, 1);
-  } else if (key === 'm') {
-    isMonitor = !isMonitor;
-    button_values[0] = isMonitor;
-  } else if (key === 'x' || key === 'X') {
+  if (key === 'x' || key === 'X') {
     toggle_slider_visibility();
   } else if (key === 's' || key === 'S') {
     toggle_sketch_size();
   }
-  
-  console.log(goodPresets[lastPreset][3], "c/g/s", curCplate, ",", curGrille, ",", curStripe);
 }
 
 // Port of plates.py to JavaScript for p5.js
 // Original code was for Processing/Python mode
 
-function getColorMask(n, gelD) {
+function getGraphic_A(n, gelD) {
   if (n < 0) {
     n = 0;
   }
   n %= NBR_SHAPES;
-  if (n === 0) {
-    console.log("plate rowe_ami");
-    return makeRoweJALColorPlate();
-  } else if (n === 1) {
-    console.log("plate spiral");
-    return makeSpiral(n, gelD);
-  } else if (n === 2) {
-    console.log("plate spokes");
-    return makeSpokes(n, gelD);
-  } else if (n === 3) {
-    console.log("plate swirl");
-    return makeSwirl(n, gelD);
-  } else if (n === 4) {
-    console.log("plate fib");
-    return makeFib(n, gelD);
-  } else if (n === 5) {
-    console.log("plate whit");
-    return makeWhitney(n, gelD);
-  } else if (n === 6) {
-    console.log("zinnia");
-    return makeZinnia(n, gelD);
+  switch (n) {
+    case 0:
+      console.log("plate rowe_ami");
+      return makeRoweJALColorPlate();
+    case 1:
+      console.log("plate spiral");
+      return makeSpiral(n, gelD);
+    case 2:
+      console.log("plate spokes");
+      return makeSpokes(n, gelD);
+    case 3:
+      console.log("plate swirl");
+      return makeSwirl(n, gelD);
+    case 4:
+      console.log("plate fib");
+      return makeFib(n, gelD);
+    case 5:
+      console.log("plate whit");
+      return makeWhitney(n, gelD);
+    case 6:
+      console.log("zinnia");
+      return makeZinnia(n, gelD);
+    case 7:
+      console.log("tricorder");
+      return makeTricorder(n, gelD, width, width * 3/86);
   }
 }
 
-function getGrille(n) {
+function getGraphic_B(n) {
   if (n < 0) {
     n = 0;
   }
   n %= NBR_SHAPES;
-  if (n === 0) {
-    console.log("grille rowe_ami");
-    return makeRoweJALGrille();
-  } else if (n === 1) {
-    console.log("grille spiral");
-    return makeSpiral(n);
-  } else if (n === 2) {
-    console.log("grille spokes");
-    return makeSpokes(n);
-  } else if (n === 3) {
-    console.log("grille swirl");
-    return makeSwirl(n);
-  } else if (n === 4) {
-    console.log("grille fib");
-    return makeFib(n);
-  } else if (n === 5) {
-    console.log("grille whit");
-    return makeWhitney(n);
-  } else if (n === 6) {
-    console.log("zinnia");
-    return makeZinnia(n);
+  switch (n) {
+    case 0:
+      console.log("grille rowe_ami");
+      return makeRoweJALGrille();
+    case 1:
+      console.log("grille spiral");
+      return makeSpiral(n);
+    case 2:
+      console.log("grille spokes");
+      return makeSpokes(n);
+    case 3:
+      console.log("grille swirl");
+      return makeSwirl(n);
+    case 4:
+      console.log("grille fib");
+      return makeFib(n);
+    case 5:
+      console.log("grille whit");
+      return makeWhitney(n);
+    case 6:
+      console.log("zinnia");
+      return makeZinnia(n);
+    case 7:
+      console.log("tricorder");
+      return makeTricorder(n, null, width * 7/86, width * 80/86);
   }
 }
 
@@ -455,14 +404,16 @@ function getColorGel(stripeNbr) {
   if (stripeNbr < 0) {
     stripeNbr = 0;
   }
-  stripeNbr %= 3;
-  let elem;
-  if (stripeNbr === 0) {
-    elem = makeColorSpokes();
-  } else if (stripeNbr === 1) {
-    elem = makeColorRings();
-  } else if (stripeNbr === 2) {
-    elem = makeColorSpiral();
+  stripeNbr %= NBR_GELS;
+  switch (stripeNbr) {
+    case 0:
+      return makeColorSpokes();
+    case 1:
+      return makeColorRings();
+    case 2:
+      return makeColorSpiral();
+    case 3:
+      return makeWhiteGel();
   }
   return elem;
 }
@@ -635,12 +586,6 @@ function makeFib(n, gel = null) {
 function makeSpokes(n, gel = null) {
   const spokeColors = [color(255, 128, 128), color(128, 255, 128), color(128, 128, 255)];
   const nbrSpokes = 17; // play with this...
-  const circMask = createGraphics(width, height);
-  circMask.background(0);
-  circMask.noStroke();
-  circMask.fill(255);
-  circMask.ellipseMode(RADIUS);
-  circMask.circle(circMask.width / 2, circMask.height / 2, circMask.width / 2);
   
   const spokes = createGraphics(width, height);
   spokes.background(0);
@@ -664,6 +609,49 @@ function makeSpokes(n, gel = null) {
   }
 
   return spokes;
+}
+
+
+
+function makeTricorder(n, gel = null, xOffset = 0, yOffset = 0) {
+  const nbrSpokes = 16*8; // play with this...
+  
+  const spokes = createGraphics(width, height);
+  spokes.background(0);
+  spokes.ellipseMode(RADIUS);
+  spokes.fill(255);
+  spokes.ellipse(spokes.width / 2, spokes.height / 2, spokes.width / 2);
+  spokes.push();
+  spokes.translate(xOffset, yOffset);
+  let spoke_angle = 2 * PI / nbrSpokes;
+  let spoke_radius = width * 1.5;
+  for (let i = 0; i < nbrSpokes; i++) {
+    spokes.push();
+    spokes.rotate(i * spoke_angle);
+    spokes.fill(0);
+    spokes.noStroke();
+    spokes.beginShape();
+    spokes.vertex(0, 0);
+    spokes.vertex(cos(0)*spoke_radius, sin(0)*spoke_radius);
+    spokes.vertex(cos(spoke_angle/2)*spoke_radius, sin(spoke_angle/2)*spoke_radius);
+    spokes.endShape();
+    spokes.pop();
+  }
+  spokes.pop();
+
+  if (gel !== null) {
+    spokes.blendMode(DARKEST);
+    spokes.image(gel, 0, 0);
+    spokes.blendMode(BLEND);
+  }
+
+  return spokes;
+}
+
+function makeWhiteGel() {
+  const white = createGraphics(width, height);
+  white.background(255);
+  return white;
 }
 
 function makeColorRings() {
