@@ -3,14 +3,13 @@ const { Engine, World, Bodies, Composite, Constraint } = Matter;
 let kWidth = 512;             // width of graphics
 let kHeight = 512;            // height of graphics
 
-let kBigCircleRadius = kWidth * .045;
-let kSmallCircleRadius = kWidth * .02;
-let kNbrBalls = 60;
+let kBeadRadius = kWidth * .02;
+let kNbrRings = 30;
 let kDamp = 0.985;
 let kGravity = 0.001;
 let kFriction = 0.0;
 let kRestitution = 0.6;
-let kStiffness = 0.002;
+let kStiffness = 0.5;
 let last_rotation_millis = 0;
 let kRotationAngle = 0.00005;
 
@@ -73,6 +72,64 @@ class Boundary {
 let balls = [];
 let boundaries = [];
 
+function make_ring(nbr_balls, ball_radius, cx, cy, clr) {
+  console.log("make_ring", nbr_balls);
+  let cluster_radius = ball_radius * 2 * nbr_balls;
+  let cballs = [];
+  for (let i = 0; i < nbr_balls; ++i) {
+    let r = i / nbr_balls;
+    let x = cx + cos(r * 2 * PI) * cluster_radius;
+    let y = cy + sin(r * 2 * PI) * cluster_radius;
+    let ball = new Ball(x, y, ball_radius, clr);
+    balls.push(ball);
+    cballs.push(ball);
+  }
+  for (let i = 0; i < nbr_balls; ++i) {
+    let constraint = Constraint.create({
+      bodyA: cballs[i].body,
+      bodyB: cballs[(i + 1) % nbr_balls].body,
+      length: ball_radius * 2,
+      stiffness: kStiffness
+    });
+    Composite.add(world, constraint);
+  }
+}
+
+function make_hub_ring(nbr_spokes, ball_radius, cx, cy, hub_color, spoke_color) {
+  console.log("make_hub_ring", nbr_spokes);
+  let spokes = [];
+  let hub_ball = new Ball(cx, cy, ball_radius, hub_color);
+  balls.push(hub_ball);
+
+  let hub_circumference = 2 * PI * ball_radius * 2;
+  let spring_length = hub_circumference / nbr_spokes;
+
+  for (let i = 0; i < nbr_spokes; ++i) {
+    let r = i / nbr_spokes;
+    let x = cx + cos(r * 2 * PI) * ball_radius*2;
+    let y = cy + sin(r * 2 * PI) * ball_radius*2;
+    let ball = new Ball(x, y, ball_radius, spoke_color);
+    balls.push(ball);
+    spokes.push(ball);
+  }
+  for (let i = 0; i < nbr_spokes; ++i) {
+    let constraint = Constraint.create({
+      bodyA: spokes[i].body,
+      bodyB: hub_ball.body,
+      length: ball_radius*2,
+      stiffness: kStiffness
+    });
+    Composite.add(world, constraint);
+    let constraint2 = Constraint.create({
+      bodyA: spokes[i].body,
+      bodyB: spokes[(i+1)%nbr_spokes].body,
+      length: spring_length,
+      stiffness: kStiffness
+    });
+    Composite.add(world, constraint2);
+  }
+}
+
 
 function setup()
 {
@@ -85,7 +142,7 @@ function setup()
   engine = Engine.create();
   world = engine.world;
 
-  let boundary_thickness = 10;
+  let boundary_thickness = 20;
   let boundary_radius = (width-boundary_thickness)/2;
   let boundary_sides = 24;
   let circumference = 2 * PI * boundary_radius;
@@ -99,15 +156,19 @@ function setup()
     boundaries.push(new Boundary(midX, midY, segmentLength, boundary_thickness, segmentAngle));
   }
 
-  for (let i = 0; i < kNbrBalls; ++i) {
-    let r = i / kNbrBalls;
-    let angle = map(r,0,1,0,2*PI);
-    let dist = map(r,0,1,0,boundary_radius * 0.9);
+  for (let i = 0; i < kNbrRings; ++i) {
+    let r = i / kNbrRings;
+    let angle = map(r,0,1,0,4*PI);
+    let dist = map(r,0,1,boundary_radius * 0.8,boundary_radius * 0.4);
     let x = width/2 + cos(angle) * dist;
-    let y = height/2 + sin(angle) * dist;
-    let radius = random(kSmallCircleRadius, kBigCircleRadius);
-    let clr = color(random(255), random(255), random(255));
-    balls.push(new Ball(x, y, radius, clr));
+    let y = height / 2 + sin(angle) * dist;
+    if (random() < 0.5) {
+      make_ring(3 + (random(1) < 0.5), kBeadRadius, x, y, color(random(255), random(255), random(255)));
+    } else {
+      let hub_color = color(random(255), random(255), random(255));
+      let spoke_color = color(random(255), random(255), random(255));
+      make_hub_ring(int(random(4,7)), kBeadRadius, x, y, hub_color, spoke_color);
+    }
   }
   last_rotation_millis = millis();
 }
@@ -183,11 +244,11 @@ function draw()
   empty_button_queue();
   background(0);
 
-  engine.gravity.x = cos(kRotationAngle); // assign the desired gravity vector
+  engine.gravity.x = cos(kRotationAngle);
   engine.gravity.y = sin(kRotationAngle);
 
-  Engine.update(engine); // update the physics world (which moves the objects around)
 
+  Engine.update(engine);
   for (let i = 0; i < balls.length; i++) {
     balls[i].show();
   }
