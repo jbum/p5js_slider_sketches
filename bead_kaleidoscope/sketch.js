@@ -111,7 +111,7 @@ const kMax_Freq = 10;
 
 function make_ring(nbr_balls, ball_radius, cx, cy, clr) {
   console.log("make_ring", nbr_balls);
-  let cluster_radius = ball_radius * 2 * nbr_balls;
+  let cluster_radius = ball_radius * 0.2 * nbr_balls;
   let cballs = [];
   for (let i = 0; i < nbr_balls; ++i) {
     let r = i / nbr_balls;
@@ -246,6 +246,7 @@ function show_color_feedback() {
 
 function setup_balls() {
     engine = Engine.create();
+    engine.constraintIterations = 5;
     console.log("engine gravity scale", engine.gravity.scale);
 
     world = engine.world;

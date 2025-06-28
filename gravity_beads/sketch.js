@@ -3,13 +3,13 @@ const { Engine, World, Bodies, Composite, Constraint } = Matter;
 let kWidth = 512;             // width of graphics
 let kHeight = 512;            // height of graphics
 
-let kNbrRings = 90;
+let kNbrRings = 150;
 let kBeadRadius = kWidth * .01;
 let kDamp = 0.985;
 let kGravity = 0.001;
 let kFriction = 0.0;
 let kRestitution = 0.6;
-let kStiffness = 0.5;
+let kStiffness = 0.25;
 let last_rotation_millis = 0;
 let kRotationAngle = 0.00005;
 
@@ -74,12 +74,14 @@ let boundaries = [];
 
 function make_ring(nbr_balls, ball_radius, cx, cy, clr) {
   console.log("make_ring", nbr_balls);
-  let cluster_radius = ball_radius * 2 * nbr_balls;
+  let cluster_radius = ball_radius * .2 * nbr_balls;
   let cballs = [];
+  let ring_spring_length = ball_radius * 2;
+  let ball_angle = 2 * PI / nbr_balls;
   for (let i = 0; i < nbr_balls; ++i) {
     let r = i / nbr_balls;
-    let x = cx + cos(r * 2 * PI) * cluster_radius;
-    let y = cy + sin(r * 2 * PI) * cluster_radius;
+    let x = cx + cos(i * ball_angle) * cluster_radius;
+    let y = cy + sin(i * ball_angle) * cluster_radius;
     let ball = new Ball(x, y, ball_radius, clr);
     balls.push(ball);
     cballs.push(ball);
@@ -88,7 +90,7 @@ function make_ring(nbr_balls, ball_radius, cx, cy, clr) {
     let constraint = Constraint.create({
       bodyA: cballs[i].body,
       bodyB: cballs[(i + 1) % nbr_balls].body,
-      length: ball_radius * 2,
+      length: ring_spring_length,
       stiffness: kStiffness
     });
     Composite.add(world, constraint);
@@ -142,6 +144,7 @@ function setup()
 
   engine = Engine.create();
   world = engine.world;
+  engine.constraintIterations = 10;
 
   let boundary_thickness = 20;
   let boundary_radius = (width-boundary_thickness)/2;
