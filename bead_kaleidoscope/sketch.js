@@ -41,12 +41,25 @@ let kVisualRotate = true;
 let kShowFrameRate = false;
 let kShowColorFeedback = false;
 
+function get_modified_color(clr, desired_lum) {
+  // convert clr to hsl, set l to desired_lum, convert back to rgb
+  colorMode(HSL, 360, 1, 1);
+  let h = hue(clr);
+  let s = saturation(clr);
+  let l = desired_lum;
+  let new_clr = color(h, s, l);
+  colorMode(RGB, 255, 255, 255);
+  return new_clr;
+}
+
 class Ball {
     constructor(px, py, radius, color) {
         this.x = px;
         this.y = py;
         this.r = radius;
         this.color = color;
+        this.dark_color = get_modified_color(color, 0.1);
+        this.light_color = get_modified_color(color, 0.75);
         let options = {
             friction: 0.85,
             restitution: 0.0
@@ -56,15 +69,15 @@ class Ball {
     }
     show(ctx) {
         let pos = this.body.position;
-        let angle = this.body.angle;
-        ctx.push();
+      ctx.push();
+      ctx.ellipseMode(RADIUS);
+        ctx.translate(pos.x, pos.y);
         ctx.noStroke();
         ctx.fill(this.color);
-        ctx.translate(pos.x, pos.y);
-        ctx.rotate(angle);
-        ctx.rectMode(CENTER);
-        ctx.strokeWeight(1);
-        ctx.ellipse(0, 0, this.r);
+        ctx.ellipse(0, 0, this.r, this.r);
+        ctx.noStroke();
+        ctx.fill(this.light_color);
+        ctx.ellipse(this.r/2, -this.r/2, this.r*.1, this.r*.1);
         ctx.pop();
     }
 }
@@ -187,8 +200,8 @@ function get_ball_color(i, tot) {
   let r = i / tot;
   let hue = sin(r * kHueFreq * PI + kHuePhase) * 128 + 128;
   let sat = sin(r * kSatFreq * PI + kSatPhase) * 128 + 128;
-  let bri = sin(r * kBriFreq * PI + kBriPhase) * 128 + 128;
-  colorMode(HSB, 255, 255, 255);
+  let bri = sin(r * kBriFreq * PI + kBriPhase) * 32 + 128;
+  colorMode(HSL, 255, 255, 255);
   let clr = color(hue, sat, bri);
   colorMode(RGB, 255, 255, 255);
   return clr;
@@ -349,9 +362,11 @@ function DrawCell(oc) {
   // old drawing went here...
   oc.pop();
   // this provides a blur effect
-  oc.filter(BLUR, kBlurAmt);
+  if (kBlurAmt >= 1/20) { 
+    oc.filter(BLUR, kBlurAmt);
+  }
   // this makes a glow effect
-  oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
+  // oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
   // gravity feedback
   if (!usesMirrors) {
     oc.push();
@@ -413,10 +428,10 @@ function slider_hook_process(slider_index, value) {
       setup_mirror();
       break;
     case 1:
-      kBlurAmt = map(value, 0, 1, 0, 20);
+      kBlurAmt = map(value, 0, 1, 0, 10);
       break;
     case 2:
-      kDarkenAmount = map(value, 0, 1, 0, 255);
+      kDarkenAmount = map(value, 1, 0, 0, 255);
       break;
     case 3:
       kRotationAngle = map(value, 0, 1, -PI,PI);

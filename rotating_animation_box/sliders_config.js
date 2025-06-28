@@ -1,7 +1,7 @@
 const sliders_cfg = [
     { minVal: 0, maxVal: 1, defaultVal: 0.00, name: "display mode" },
     { minVal: 0, maxVal: 1, defaultVal: 0.43, name: "rotation speed" },
-    { minVal: 0, maxVal: 1, defaultVal: 0.69, name: "src graphic" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.69, name: "source graphic" },
     { minVal: 0, maxVal: 1, defaultVal: 0.57, name: "grille" },
     { minVal: 0, maxVal: 1, defaultVal: 0.57, name: "color gel" },
     { minVal: 0, maxVal: 1, defaultVal: 0.66, name: "preset" },

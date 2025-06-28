@@ -288,7 +288,9 @@ function DrawCell(oc) {
   // old drawing went here...
   oc.pop();
   // this provides a blur effect
-  oc.filter(BLUR, kBlurAmt);
+  if (kBlurAmt >= 1/10) {
+    oc.filter(BLUR, kBlurAmt);
+  }
   // this makes a glow effect
   oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
   // gravity feedback
@@ -352,10 +354,10 @@ function slider_hook_process(slider_index, value) {
       setup_mirror();
       break;
     case 1:
-      kBlurAmt = map(value, 0, 1, 0, 20);
+      kBlurAmt = map(value, 0, 1, 0, 10);
       break;
     case 2:
-      kDarkenAmount = map(value, 0, 1, 0, 255);
+      kDarkenAmount = map(value, 1, 0, 127, 255);
       break;
     case 3:
       kRotationAngle = map(value, 0, 1, -PI,PI);

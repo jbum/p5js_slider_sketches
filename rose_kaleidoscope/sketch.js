@@ -77,23 +77,25 @@ function DrawCell(oc) {
   oc.push();
   oc.translate(objectCellWidth/2, objectCellHeight/2);
   for (let i = 0; i <= kNbrDots; ++i) {
-    let theta = i * PI * 2 / kNbrDots;
+    let theta = i * PI * 2 / kNbrDots; // angle going around the circle goes from 0 -> 2π
     let myHue = n + theta / 2;
     let ph = sin(millis() * 0.0001);
     let rr = Math.floor(sin(myHue) * 127 + 128);
     let gg = Math.floor(sin(myHue + (2 * ph) * PI / 3) * 127 + 128);
     let bb = Math.floor(sin(myHue + (4 * ph) * PI / 3) * 127 + 128);
     oc.fill(rr, gg, bb);
-    let r = rad * sin(n * theta);
+    let r = rad * cos(n * theta); // the rose equation, note that each dot oscillates back and forth on a straight line
     let px = cos(theta) * r * 2;
     let py = sin(theta) * r * 2;
     oc.ellipse(px, py, kDotRadius, kDotRadius);
   }
   oc.pop();
   // this provides a blur effect
-  oc.filter(BLUR, kBlurAmt);
+  if (kBlurAmt >= 1/20) {
+    oc.filter(BLUR, kBlurAmt);
+  }
+  // glow
   oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
-  // oc.endDraw();
 }
 
 function setup() {
@@ -148,7 +150,7 @@ function slider_hook_process(slider_index, value) {
       kBlurAmt = map(value, 0, 1, 0, 20);
       break;
     case 4:
-      kDarkenAmount = map(value, 0, 1, 0, 255);
+      kDarkenAmount = map(value, 1, 0, 128, 255);
       break;
     case 5:
       kSpeed = map(value, 0, 1, 0.00001, 0.0001);

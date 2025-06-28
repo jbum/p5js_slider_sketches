@@ -1,7 +1,7 @@
 const sliders_cfg = [
     { minVal: 0, maxVal: 1, defaultVal: 0.4, name: "sides" },
     { minVal: 0, maxVal: 1, defaultVal: 0.257, name: "blur amt" },
-    { minVal: 0, maxVal: 1, defaultVal: 0.765, name: "darken amt" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.765, name: "trails" },
     { minVal: 0, maxVal: 1, defaultVal: 0.075, name: "rotation angle" },
     { minVal: 0, maxVal: 1, defaultVal: 0.3, name: "feedback levels" },
     { minVal: 0, maxVal: 1, defaultVal: 0.75, name: "recurse scale" },

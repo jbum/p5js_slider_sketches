@@ -16,9 +16,22 @@ let kRotationAngle = 0.00005;
 let engine;
 let world;
 
+function get_modified_color(clr, desired_lum) {
+  // convert clr to hsl, set l to desired_lum, convert back to rgb
+  colorMode(HSL, 360, 1, 1);
+  let h = hue(clr);
+  let s = saturation(clr);
+  let l = desired_lum;
+  let new_clr = color(h, s, l);
+  colorMode(RGB, 255, 255, 255);
+  return new_clr;
+}
+
 class Ball {
     constructor(px, py, radius, color) {
       this.color = color;
+      this.dark_color = get_modified_color(color, 0.25);
+      this.light_color = get_modified_color(color, 0.75);
       this.radius = radius;
         let options = {
             friction: kFriction,
@@ -31,13 +44,18 @@ class Ball {
         let pos = this.body.position;
         let angle = this.body.angle;
         push();
-        noStroke();
-        fill(this.color);
         translate(pos.x, pos.y);
-        rotate(angle);
-        rectMode(CENTER);
-        strokeWeight(1);
-        ellipse(0, 0, this.radius);
+        noStroke();
+        // fill(this.color);
+      fillGradient('radial', {
+        from: [this.radius/3, this.radius/2, 0],
+        to: [this.radius/3, this.radius/2, this.radius * 2],
+        steps: [this.dark_color, this.light_color]
+      });
+        ellipse(0, 0, this.radius, this.radius);
+        noStroke();
+        fill(this.light_color);
+        ellipse(this.radius/2, -this.radius/2, this.radius*.1, this.radius*.1);
         pop();
     }
 }
