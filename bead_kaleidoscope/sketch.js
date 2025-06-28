@@ -138,8 +138,9 @@ function make_hub_ring(nbr_spokes, ball_radius, cx, cy, hub_color, spoke_color) 
   let hub_ball = new Ball(cx, cy, ball_radius, hub_color);
   balls.push(hub_ball);
 
-  let hub_circumference = 2 * PI * ball_radius * 2;
-  let spring_length = hub_circumference / nbr_spokes;
+  let hub_radius = ball_radius * 2;
+  let ball_angle = 2 * PI / nbr_spokes;
+  let spring_length = dist(cos(0)*hub_radius, sin(0)*hub_radius, cos(ball_angle)*hub_radius, sin(ball_angle)*hub_radius);
 
   for (let i = 0; i < nbr_spokes; ++i) {
     let r = i / nbr_spokes;
@@ -264,7 +265,7 @@ function setup_balls() {
 
     let golden_ratio = (1 + sqrt(5)) / 2;
     let golden_angle = 2 * PI / golden_ratio;
-    let max_hub_radius = kMaxBeadRadius * 1.5;
+    let max_hub_radius = kMaxBeadRadius * 2;
     let max_hub_area = PI * pow(max_hub_radius, 2);
     let cum_area = max_hub_area;
 
