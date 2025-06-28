@@ -30,7 +30,7 @@ let kRotationAngle = 1.5707963268;
 
 let kNbrRings = 150;
 let kMinBeadRadius = kWidth * .01;
-let kMaxBeadRadius = kWidth * .02;
+let kMaxBeadRadius = kWidth * .015;
 
 let kWedgeFeedback = false;
 let kUseRecursion = false;
@@ -261,17 +261,25 @@ function setup_balls() {
     }
     console.log("kNbrRings", kNbrRings);
     initialize_ball_colors();
-    for (let i = 0; i < kNbrRings; ++i) {
-        let r = i / kNbrRings;
-      let ang = map(r, 0, 1, 0, 8 * PI);
-      let dist = map(r * r, 0, 1, scopeRadius * .9, scopeRadius * .2);
-      
-        let x = width/2 + cos(ang) * dist;
-        let y = height / 2 + sin(ang) * dist;
-        let rad = map(pow(random(1),3),0,1,kMinBeadRadius, kMaxBeadRadius);
+
+    let golden_ratio = (1 + sqrt(5)) / 2;
+    let golden_angle = 2 * PI / golden_ratio;
+    let max_hub_radius = kMaxBeadRadius * 1.5;
+    let max_hub_area = PI * pow(max_hub_radius, 2);
+    let cum_area = max_hub_area;
+
+
+  for (let i = 0; i < kNbrRings; ++i) {
+      let r = i / kNbrRings;
+      let ang = i * golden_angle;
+      let dist = sqrt(cum_area / PI);
+      cum_area += max_hub_area;
+      let x = width/2 + cos(ang) * dist;
+      let y = height / 2 + sin(ang) * dist;
+      let rad = map(pow(random(1),3),0,1,kMinBeadRadius, kMaxBeadRadius);
       if (random() < 0.66) {
           let bead_color = get_ball_color(i, kNbrRings);
-          make_ring(3 + (random(1) < 0.5), rad, x, y, bead_color);
+          make_ring(int(random(3,5)), rad, x, y, bead_color);
         } else {  
           let hub_color = get_ball_color(i+random(kNbrRings), kNbrRings);
           let spoke_color = get_ball_color(i, kNbrRings);

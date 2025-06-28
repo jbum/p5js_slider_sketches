@@ -3,8 +3,8 @@ const { Engine, World, Bodies, Composite, Constraint } = Matter;
 let kWidth = 512;             // width of graphics
 let kHeight = 512;            // height of graphics
 
-let kBeadRadius = kWidth * .02;
-let kNbrRings = 30;
+let kNbrRings = 90;
+let kBeadRadius = kWidth * .01;
 let kDamp = 0.985;
 let kGravity = 0.001;
 let kFriction = 0.0;
@@ -156,10 +156,18 @@ function setup()
     boundaries.push(new Boundary(midX, midY, segmentLength, boundary_thickness, segmentAngle));
   }
 
+  let golden_ratio = (1 + sqrt(5)) / 2;
+  let golden_angle = 2 * PI / golden_ratio;
+  let max_hub_radius = kBeadRadius * 3.7;
+  let max_hub_area = PI * pow(max_hub_radius, 2);
+  let cum_area = max_hub_area;
+  
+
   for (let i = 0; i < kNbrRings; ++i) {
     let r = i / kNbrRings;
-    let angle = map(r,0,1,0,4*PI);
-    let dist = map(r,0,1,boundary_radius * 0.8,boundary_radius * 0.4);
+    let angle = i * golden_angle;
+    let dist = sqrt(cum_area / PI);
+    cum_area += max_hub_area;
     let x = width/2 + cos(angle) * dist;
     let y = height / 2 + sin(angle) * dist;
     if (random() < 0.5) {
