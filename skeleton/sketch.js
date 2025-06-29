@@ -51,7 +51,12 @@ function draw() {
   empty_slider_queue();
   empty_button_queue();
   background(0);
-  // draw a series of 8 dots, representing the values of the sliders
+
+
+
+  //
+  // BEGIN ----- DELETE THIS BLOCK -----
+  //
   stroke(255);
   for (let i = 0; i < 8; i++) {
     let x = map(values[i], 0, 1, 50, width-50);
@@ -60,7 +65,6 @@ function draw() {
     ellipse(x, y, radius, radius);
   }
 
-  // draw a series of 8 dots, representing the values of the buttons
   for (let i = 0; i < 8; i++) {
     gx = i % 4;
     gy = int(i / 4);
@@ -78,6 +82,9 @@ function draw() {
     ellipse(x, y, radius, radius);
     fill(0);
   }
+  //
+  // END ----- DELETE THIS BLOCK -----
+  //
 
 }
 
