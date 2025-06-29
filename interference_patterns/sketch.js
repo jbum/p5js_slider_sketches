@@ -20,6 +20,8 @@ let curGraphic_A_idx = 0;
 let curGraphic_B_idx = 0;
 let curColorGel_idx = 0;
 let isMonitor = false;
+let kBlurAmt = 0;
+let kUseDisplaceShader = false;
 
 // Graphics objects
 let graphic_A;
@@ -42,6 +44,30 @@ const goodPresets = [
   [2, 0, 0, "spoke/rowe"],
 ];
 
+let displaceColorsSrc = `
+precision highp float;
+
+uniform sampler2D tex0;
+varying vec2 vTexCoord;
+
+vec2 zoom(vec2 coord, float amount) {
+  vec2 relativeToCenter = coord - 0.5;
+  relativeToCenter /= amount; // Zoom in
+  return relativeToCenter + 0.5; // Put back into absolute coordinates
+}
+
+void main() {
+  // Get each color channel using coordinates with different amounts
+  // of zooms to displace the colors slightly
+  gl_FragColor = vec4(
+    texture2D(tex0, vTexCoord).r,
+    texture2D(tex0, zoom(vTexCoord, 1.05)).g,
+    texture2D(tex0, zoom(vTexCoord, 1.1)).b,
+    texture2D(tex0, vTexCoord).a
+  );
+}
+`;
+
 function preload() {
   console.log("Preloading shaders");
   if (use_shaders) {
@@ -62,8 +88,9 @@ function preload() {
   }
 }
 
+let displaceColors;
+
 function setup() {
-  console.log("Setup A");
   createCanvas(kWidth, kHeight, WEBGL);
   pixelDensity(1); // Ensure consistent pixel density
   
@@ -77,7 +104,9 @@ function setup() {
   textSize(12);
   
   // Process slider values
-  console.log("Setup Z");
+  // noLoop();
+  displaceColors = createFilterShader(displaceColorsSrc);
+
 }
 
 let small_size = 600;
@@ -141,6 +170,12 @@ function slider_hook_process(slider_index, value) {
     document.getElementById('sketch-label').textContent = label;
     updateDiscs();
     break;
+  case 6:
+    kBlurAmt = map(value, 0, 1, 0, 10);
+    break;
+  case 7:
+      // unused
+    break;
   }
 }
 
@@ -159,9 +194,13 @@ function empty_button_queue() {
 
 function button_hook_process(index, value) {
   // button_values[index] = value;
-  
-  if (index == 0) {
-    isMonitor = value > 0;
+  switch (index) {
+    case 0:
+      isMonitor = value > 0;
+      break;
+    case 1:
+      kUseDisplaceShader = value > 0;
+      break;
   }
 }
 
@@ -169,7 +208,7 @@ function draw() {
   empty_slider_queue();
   empty_button_queue();
   
-  background(0);
+  background(0, 0, 0);
   
   // Reset transformation
   resetMatrix();
@@ -187,6 +226,9 @@ function draw() {
   const rpmm = TWO_PI * (rpm / 60.0) / 1000.0;
   rotate(frameCount * msPerFrame * rpmm);
   
+  blendMode(LIGHTEST);
+
+
   // Draw the color mask
   imageMode(CENTER);
     image(graphic_A, 0, 0);
@@ -222,32 +264,34 @@ function draw() {
   if ((mode === 0 || mode === 4) && luxShader && blurShader && use_shaders && use_shader_vars) {
     try {
       // Apply blur shader
+      console.log("shader a");
       shader(blurShader);
-      // blurShader.setUniform('uTexture', get());
-      // blurShader.setUniform('uTexOffset', [1.0/width, 1.0/height]);
-      // blurShader.setUniform('uKernelSize', 64);
-      // blurShader.setUniform('uHorizontalPass', 1);
-      // blurShader.setUniform('uStrength', 2.0);
+      blurShader.setUniform('uTexture', get());
+      blurShader.setUniform('uTexOffset', [1.0/width, 1.0/height]);
+      blurShader.setUniform('uKernelSize', 64);
+      blurShader.setUniform('uHorizontalPass', 1);
+      blurShader.setUniform('uStrength', 2.0);
       rect(0, 0, width, height);
       resetShader();
       
       // Apply horizontal lux shader
+      console.log("shader b");
       shader(luxShader);
-      // luxShader.setUniform('uTexture', get());
-      // luxShader.setUniform('uTexOffset', [1.0/width, 1.0/height]);
-      // luxShader.setUniform('uKernelSize', 64);
-      // luxShader.setUniform('uStrength', 32.0);
-      // luxShader.setUniform('uAngle', 0);
+      luxShader.setUniform('uTexture', get());
+      luxShader.setUniform('uTexOffset', [1.0/width, 1.0/height]);
+      luxShader.setUniform('uKernelSize', 64);
+      luxShader.setUniform('uStrength', 32.0);
+      luxShader.setUniform('uAngle', 0);
       rect(0, 0, width, height);
       resetShader();
       
       // Apply vertical lux shader
       shader(luxShader2);
-      // luxShader2.setUniform('uTexture', get());
-      // luxShader2.setUniform('uTexOffset', [1.0/width, 1.0/height]);
-      // luxShader2.setUniform('uKernelSize', 64);
-      // luxShader2.setUniform('uStrength', 32.0);
-      // luxShader2.setUniform('uAngle', PI / 2);
+      luxShader2.setUniform('uTexture', get());
+      luxShader2.setUniform('uTexOffset', [1.0/width, 1.0/height]);
+      luxShader2.setUniform('uKernelSize', 64);
+      luxShader2.setUniform('uStrength', 32.0);
+      luxShader2.setUniform('uAngle', PI / 2);
       rect(0, 0, width, height);
       resetShader();
     } catch (e) {
@@ -260,6 +304,19 @@ function draw() {
     // filter(BLUR, 2);
     pop();
   }
+  if (kBlurAmt >= 1 / 10) {
+    for (let i = 0; i < kBlurAmt; i++) {
+      filter(BLUR, 1);
+      filter(DILATE);
+    }
+    filter(BLUR, 1);
+  }
+  if (kUseDisplaceShader) {
+    filter(displaceColors);
+  }
+
+  // this makes a glow effect
+  // blend(0, 0, width, height, -2, 2, width + 3, height - 5, ADD);
   
   // Draw monitor (preview of components) if enabled
   if (isMonitor) {
@@ -310,31 +367,22 @@ function getGraphic_A(n, gelD) {
   n %= NBR_SHAPES;
   switch (n) {
     case 0:
-      console.log("plate rowe_ami");
       return makeRoweJALColorPlate();
     case 1:
-      console.log("plate spiral");
       return makeSpiral(n, gelD);
     case 2:
-      console.log("plate spokes");
       return makeSpokes(n, gelD);
     case 3:
-      console.log("plate swirl");
       return makeSwirl(n, gelD);
     case 4:
-      console.log("plate fib");
       return makeFib(n, gelD);
     case 5:
-      console.log("plate whit");
       return makeWhitney(n, gelD);
     case 6:
-      console.log("zinnia");
       return makeZinnia(n, gelD);
     case 7:
-      console.log("tos tricorder");
       return makeTricorder(n, gelD, width * 146/286, -width * 119/286);
     case 8:
-      console.log("tos communicator a");
       return makeTricorder(n, gelD, 0, width * 32/286);
   }
 }
@@ -346,31 +394,22 @@ function getGraphic_B(n) {
   n %= NBR_SHAPES;
   switch (n) {
     case 0:
-      console.log("grille rowe_ami");
       return makeRoweJALGrille();
     case 1:
-      console.log("grille spiral");
       return makeSpiral(n);
     case 2:
-      console.log("grille spokes");
       return makeSpokes(n);
     case 3:
-      console.log("grille swirl");
       return makeSwirl(n);
     case 4:
-      console.log("grille fib");
       return makeFib(n);
     case 5:
-      console.log("grille whit");
       return makeWhitney(n);
     case 6:
-      console.log("zinnia");
       return makeZinnia(n);
     case 7:
-      console.log("tos tricorder");
       return makeTricorder(n, null, -width * 119/286, width * 110/286);
     case 8:
-      console.log("tos communicator b");
       return makeTricorder(n, null, 0, 0);
   }
 }
@@ -590,7 +629,6 @@ function makeSpokes(n, gel = null) {
 
 function makeTricorder(n, gel = null, xOffset = 0, yOffset = 0) {
   const nbrSpokes = 127; // play with this...
-  console.log("called makeTricorder", n, gel, xOffset, yOffset);
   const spokes = createGraphics(width, height);
   spokes.background(0);
   spokes.ellipseMode(RADIUS);

@@ -5,11 +5,12 @@ This is a set of p5.js projects organized as a single website with multiple sub-
 ## Project Structure
 
 - `/common/` - Shared resources used by all projects
+
   - `midi_sliders.js` - Control panel for sliders and buttons
   - `/library/` - P5.js library files
   - `favicon.ico` - Common favicon
 
-- Individual project directories (e.g., `/rose_synth/`, `/rotating_animation_box/`, etc.)
+- Individual project directories (e.g., `/rose_synth/`, `/test_face/`, etc.)
   - Each contains its own `sketch.js` for the specific project functionality
   - `index.html` imports common resources
   - `style.css` for project-specific styles
@@ -17,7 +18,9 @@ This is a set of p5.js projects organized as a single website with multiple sub-
 ## Cookie System
 
 The projects use two types of cookies:
+
 1. **Global MIDI mappings cookie** (`midi_mappings`) - Stores MIDI controller assignments across all projects
+
    - Control numbers for sliders
    - Note numbers for buttons
    - Stored at root path (`/`)
@@ -40,6 +43,7 @@ The system now automatically determines the appropriate cookie name for each pro
 ## MIDI Control
 
 All projects can be controlled from a MIDI control surface:
+
 - Sliders can be mapped to MIDI CC controls (Control Change messages)
 - Buttons can be mapped to MIDI notes
 - Mapping is done by shift-clicking on a slider/button and sending a MIDI message

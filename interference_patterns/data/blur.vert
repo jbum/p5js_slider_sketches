@@ -1,6 +1,6 @@
 #ifdef GL_ES
-precision mediump float;
-precision mediump int;
+precision highp float;
+precision highp int;
 #endif
 
 attribute vec3 aPosition;
