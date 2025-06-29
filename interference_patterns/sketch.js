@@ -1,8 +1,11 @@
-// Port of rotating_animation_box.pyde to p5.js
-// Original was for Processing/Python mode
+// Port of a sketch originally created to mimic the jukebox display in an old movie (an ami/rowe jukebox)
+// footage at 00:35 in this clip: https://www.youtube.com/watch?v=QFlflxfe1RI
+// Added tricorder and communicators from Star Trek later.
+// This supports creating rotational interference patterns from one rotating pattern placed under a fixed pattern
+// Other physical interference pattern displays of historical interest would be cool to add.
 
 // Port of plates.py functions merged into sketch.js
-const NBR_SHAPES = 8;
+const NBR_SHAPES = 9;
 const NBR_GELS = 4;
 const SLOT_WIDTH = 7;
 
@@ -29,19 +32,14 @@ let use_shaders = false; // not successfully ported yet (having issue with calls
 let use_shader_vars = false;
 // Presets from the original code
 const goodPresets = [
-  [0, 0, 0, "rowe/ami"],
+  [7, 7, 3, "tos tricorder"], // reference https://www.thewandcompany.com/tricorder-update-8/
+  [8, 8, 3, "tos communicator"], // reference https://www.thewandcompany.com/tricorder-update-8/
+  [0, 0, 0, "rowe/ami L-200 jukebox"], // reference footage https://www.youtube.com/watch?v=7QtO-hxgRfU and https://www.youtube.com/watch?v=QFlflxfe1RI
   [1, 2, 1, "expanding spiral"],
   [2, 2, 0, "starburst"],
   [3, 3, 1, "banded star"],
-  [1, 0, 1, "ami galaxy"],
-  [1, 4, 0, "expanding fib"],
-  [3, 2, 2, "inward draw"],
-  [2, 3, 1, "outward draw"],
   [1, 3, 1, "slow expand"],
-  [0, 3, 1, "rowe expand"],
-  [4, 3, 1, "fib expand"],
   [2, 0, 0, "spoke/rowe"],
-  [7, 7, 3, "tricorder"]
 ];
 
 function preload() {
@@ -137,7 +135,7 @@ function slider_hook_process(slider_index, value) {
     updateDiscs();
     break;
   case 5:
-    let preset_idx = floor(map(value, 0, 1, 0, goodPresets.length - 1));
+    let preset_idx = floor(map(value, 0, 1.01, 0, goodPresets.length));
     [curGraphic_A_idx, curGraphic_B_idx, curColorGel_idx] = goodPresets[preset_idx];
     const label = `${goodPresets[preset_idx][3]} (${curGraphic_A_idx}/${curGraphic_B_idx}/${curColorGel_idx})`;
     document.getElementById('sketch-label').textContent = label;
@@ -333,8 +331,11 @@ function getGraphic_A(n, gelD) {
       console.log("zinnia");
       return makeZinnia(n, gelD);
     case 7:
-      console.log("tricorder");
-      return makeTricorder(n, gelD, width, width * 3/86);
+      console.log("tos tricorder");
+      return makeTricorder(n, gelD, width * 146/286, -width * 119/286);
+    case 8:
+      console.log("tos communicator a");
+      return makeTricorder(n, gelD, 0, width * 32/286);
   }
 }
 
@@ -366,8 +367,11 @@ function getGraphic_B(n) {
       console.log("zinnia");
       return makeZinnia(n);
     case 7:
-      console.log("tricorder");
-      return makeTricorder(n, null, width * 7/86, width * 80/86);
+      console.log("tos tricorder");
+      return makeTricorder(n, null, -width * 119/286, width * 110/286);
+    case 8:
+      console.log("tos communicator b");
+      return makeTricorder(n, null, 0, 0);
   }
 }
 
@@ -585,15 +589,15 @@ function makeSpokes(n, gel = null) {
 
 
 function makeTricorder(n, gel = null, xOffset = 0, yOffset = 0) {
-  const nbrSpokes = 16*8; // play with this...
-  
+  const nbrSpokes = 127; // play with this...
+  console.log("called makeTricorder", n, gel, xOffset, yOffset);
   const spokes = createGraphics(width, height);
   spokes.background(0);
   spokes.ellipseMode(RADIUS);
   spokes.fill(255);
   spokes.ellipse(spokes.width / 2, spokes.height / 2, spokes.width / 2);
   spokes.push();
-  spokes.translate(xOffset, yOffset);
+  spokes.translate(width/2 + xOffset, height/2 + yOffset);
   let spoke_angle = 2 * PI / nbrSpokes;
   let spoke_radius = width * 1.5;
   for (let i = 0; i < nbrSpokes; i++) {
