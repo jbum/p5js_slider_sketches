@@ -65,7 +65,7 @@ let nodes = [];
 let springs = [];
 
 function setup_letter_chain(phrase) {
-  let letter_gap = 100;
+  let letter_gap = 65;
   let nbr_nodes = int(kWidth / letter_gap) + 1;
   let node_radius = 10;
   let first_node = max(1, int((nbr_nodes - phrase.length) / 2));
@@ -164,7 +164,7 @@ function button_hook_process(index, value) {
 function draw() {
   empty_slider_queue();
   empty_button_queue();
-  background(0);
+  background(0,0,0,90);
 
   Engine.update(engine);
   for (node of nodes) {
