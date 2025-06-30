@@ -1,12 +1,8 @@
 const { Engine, World, Bodies, Composite, Constraint } = Matter;
-let values = [0,0,0,0,0,0,0,0];
-let button_values = [0, 0, 0, 0, 0, 0, 0, 0];
 
 let engine;
 let world;
 
-let kWidth = 800;             // width of graphics
-let kHeight = 500;            // height of graphics
 let kShowConstraints = false;
 
 function get_modified_color(clr, desired_lum) {
@@ -66,12 +62,12 @@ let springs = [];
 
 function setup_letter_chain(phrase) {
   let letter_gap = 65;
-  let nbr_nodes = int(kWidth / letter_gap) + 1;
+  let nbr_nodes = int(width / letter_gap) + 1;
   let node_radius = 10;
   let first_node = max(1, int((nbr_nodes - phrase.length) / 2));
   for (let i = 0; i < nbr_nodes; i++) {
     node_x = letter_gap * i;
-    node_y = kHeight / 2;
+    node_y = height / 2;
     let letter = null;
     if (i >= first_node && i < first_node + phrase.length) {
       letter = phrase[i - first_node];
@@ -102,7 +98,7 @@ function setup_letter_chain(phrase) {
 }
 
 function setup() {
-  myCanvas = createCanvas(kWidth, kHeight);
+  myCanvas = createCanvas(800, 500);
 
   engine = Engine.create();
   world = engine.world;
@@ -131,7 +127,6 @@ function empty_slider_queue() {
 }
 
 function slider_hook_process(slider_index, value) {
-  values[slider_index] = value;
   switch (slider_index) {
     case 0:
       engine.gravity.scale = map(value, 0, 1, -0.002, 0.002);
@@ -153,7 +148,6 @@ function empty_button_queue() {
 }
 
 function button_hook_process(index, value) {
-  button_values[index] = value;
   switch (index) {
     case 0:
       kShowConstraints = value > 0.5;
@@ -187,8 +181,8 @@ let small_size = 512;
 let large_size = 900;
 
 function toggle_sketch_size() {
-  kWidth = kWidth === small_size ? large_size : small_size;
-  kHeight = kWidth;
+  let kWidth = width === small_size ? large_size : small_size;
+  let kHeight = kWidth;
   resizeCanvas(kWidth, kHeight);
 }
 

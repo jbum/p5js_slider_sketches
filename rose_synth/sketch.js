@@ -28,9 +28,6 @@ let cycleLength = 3 * 60;   // Length of the full cycle in seconds
 let durRange = cycleLength * 1000/nbrPoints;        // Duration range
 let minDur = durRange/2;    // Minimum duration
 
-let kWidth = 512;             // width of graphics
-let kHeight = 512;            // height of graphics
-
 let tines = [];        // keeps track of current position of note, by angle
 let lastSound = [];     // keeps track of time last note sounded
 // let isOn = [];
@@ -56,7 +53,7 @@ let myCanvas;
 function setup() {
   let min_window_dimension = Math.min(windowWidth, windowHeight);
   userStartAudio();
-  myCanvas = createCanvas(kWidth, kWidth, document.getElementById('sketch-canvas'));
+  myCanvas = createCanvas(512, 512);
   background(0);
   colorMode(HSB, 1);
   ellipseMode(RADIUS);
@@ -366,8 +363,8 @@ let small_size = 512;
 let large_size = 900;
 
 function toggle_sketch_size() {
-  kWidth = kWidth === small_size ? large_size : small_size;
-  kHeight = kWidth;
+  let kWidth = width === small_size ? large_size : small_size;
+  let kHeight = kWidth;
 
   resizeCanvas(kWidth, kHeight);
 }

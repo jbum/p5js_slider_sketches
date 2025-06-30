@@ -9,8 +9,6 @@ const NBR_SHAPES = 9;
 const NBR_GELS = 4;
 const SLOT_WIDTH = 7;
 
-let kWidth = 600;  // width of graphics
-let kHeight = 600; // height of graphics
 const msPerFrame = 1000 / 30.0;
 
 // Simulation variables
@@ -91,7 +89,7 @@ function preload() {
 let displaceColors;
 
 function setup() {
-  createCanvas(kWidth, kHeight, WEBGL);
+  createCanvas(600, 600, WEBGL);
   pixelDensity(1); // Ensure consistent pixel density
   
   // Initialize graphics
@@ -113,8 +111,8 @@ let small_size = 600;
 let large_size = 900;
 
 function toggle_sketch_size() {
-  kWidth = kWidth === small_size ? large_size : small_size;
-  kHeight = kWidth;
+  let kWidth = width === small_size ? large_size : small_size;
+  let kHeight = kWidth;
   resizeCanvas(kWidth, kHeight);
   gelDisc = getColorGel(curColorGel_idx);
   graphic_A = getGraphic_A(curGraphic_A_idx, gelDisc);

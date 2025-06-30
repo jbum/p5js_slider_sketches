@@ -1,5 +1,4 @@
-let kWidth = 512;             // width of graphics
-let kHeight = 512;            // height of graphics
+         // height of graphics
 
 
 
@@ -52,12 +51,12 @@ function button_hook(button_index, value) {
 
 function setup() {
   let min_window_dimension = Math.min(windowWidth, windowHeight);
-  myCanvas = createCanvas(kWidth, kWidth, document.getElementById('sketch-canvas'));
+  myCanvas = createCanvas(512, 512);
   background(0);
   ellipseMode(RADIUS);
   for (let i = 0; i < kNbrBalls; i++) {
-    let x = random(50, kWidth-50); 
-    let y = random(50, kHeight-50);
+    let x = random(50, width-50); 
+    let y = random(50, height-50);
     let radius = random(10, 50);
     colorMode(HSL, 255, 255, 255);
     let clr = color(random(255), random(255), 128);

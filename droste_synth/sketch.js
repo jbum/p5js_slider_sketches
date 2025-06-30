@@ -1,7 +1,4 @@
 
-let kWidth = 512;             // width of graphics
-let kHeight = 512;            // height of graphics
-
 let kViewAngle = 35*Math.PI/180;
 let kCamRadius = 500;
 let kCamHeight = 500;
@@ -55,7 +52,7 @@ function setup_recursions() {
 
 function setup() {
   let min_window_dimension = Math.min(windowWidth, windowHeight);
-  myCanvas = createCanvas(kWidth, kWidth, WEBGL, document.getElementById('sketch-canvas'));
+  myCanvas = createCanvas(512, 512, WEBGL);
   // background(0);
   ellipseMode(RADIUS);
 
@@ -269,8 +266,8 @@ let small_size = 512;
 let large_size = 900;
 
 function toggle_sketch_size() {
-  kWidth = kWidth === small_size ? large_size : small_size;
-  kHeight = kWidth;
+  let kWidth = width === small_size ? large_size : small_size;
+  let kHeight = kWidth;
   resizeCanvas(kWidth, kHeight);
 }
 
