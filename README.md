@@ -14,7 +14,6 @@ The projects have been restructured to use a shared codebase for controls, while
 ## Live Demo
 
 <a href="https://jbum.github.io/p5js_slider_sketches/">LINK</a>
-(currently still janky)
 
 ## Features
 
