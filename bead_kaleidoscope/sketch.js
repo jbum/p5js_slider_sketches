@@ -53,31 +53,39 @@ function get_modified_color(clr, desired_lum) {
 }
 
 class Ball {
-    constructor(px, py, radius, color) {
+    constructor(px, py, radius, color, is_rect) {
         this.x = px;
         this.y = py;
         this.r = radius;
         this.color = color;
         this.dark_color = get_modified_color(color, 0.1);
         this.light_color = get_modified_color(color, 0.75);
+        this.is_rect = is_rect;
         let options = {
             friction: 0.85,
             restitution: 0.0
         }
-        this.body = Bodies.circle(this.x, this.y, this.r, options);
+        if (this.is_rect) {
+            this.body = Bodies.rectangle(this.x, this.y, this.r*2, this.r*2, options);
+        } else {
+            this.body = Bodies.circle(this.x, this.y, this.r, options);
+        }
         Composite.add(world, this.body);
     }
     show(ctx) {
         let pos = this.body.position;
+        let angle = this.body.angle;
       ctx.push();
       ctx.ellipseMode(RADIUS);
         ctx.translate(pos.x, pos.y);
+        ctx.rotate(angle);
         ctx.noStroke();
         ctx.fill(this.color);
-        ctx.ellipse(0, 0, this.r, this.r);
-        ctx.noStroke();
-        ctx.fill(this.light_color);
-        ctx.ellipse(this.r/2, -this.r/2, this.r*.1, this.r*.1);
+        if (this.is_rect) {
+          ctx.rect(-this.r, -this.r, this.r*2, this.r*2);
+        } else {
+          ctx.ellipse(0, 0, this.r, this.r);
+        }
         ctx.pop();
     }
 }
@@ -133,7 +141,7 @@ function make_ring(nbr_balls, ball_radius, cx, cy, clr) {
     let r = i / nbr_balls;
     let x = cx + cos(i * ball_angle) * cluster_radius;
     let y = cy + sin(i * ball_angle) * cluster_radius;
-    let ball = new Ball(x, y, ball_radius, clr);
+    let ball = new Ball(x, y, ball_radius, clr, false);
     balls.push(ball);
     cballs.push(ball);
   }
@@ -151,7 +159,7 @@ function make_ring(nbr_balls, ball_radius, cx, cy, clr) {
 function make_hub_ring(nbr_spokes, ball_radius, cx, cy, hub_color, spoke_color) {
   console.log("make_hub_ring", nbr_spokes);
   let spokes = [];
-  let hub_ball = new Ball(cx, cy, ball_radius, hub_color);
+  let hub_ball = new Ball(cx, cy, ball_radius, hub_color, false);
   balls.push(hub_ball);
 
   let hub_radius = ball_radius * 2;
@@ -162,7 +170,7 @@ function make_hub_ring(nbr_spokes, ball_radius, cx, cy, hub_color, spoke_color) 
     let r = i / nbr_spokes;
     let x = cx + cos(r * 2 * PI) * ball_radius*2;
     let y = cy + sin(r * 2 * PI) * ball_radius*2;
-    let ball = new Ball(x, y, ball_radius, spoke_color);
+    let ball = new Ball(x, y, ball_radius, spoke_color, true);
     balls.push(ball);
     spokes.push(ball);
   }
