@@ -162,8 +162,10 @@ class Button {
     }
 
     isPointInside(x, y) {
-        return x >= this.x && x <= this.x + this.width &&
-               y >= this.y && y <= this.y + this.height;
+        // Add small padding for touch devices to make buttons easier to tap
+        const padding = ('ontouchstart' in window) ? 4 : 0;
+        return x >= this.x - padding && x <= this.x + this.width + padding &&
+               y >= this.y - padding && y <= this.y + this.height + padding;
     }
 
     handleMouseEvent(x, y, isShiftDown) {
@@ -271,7 +273,17 @@ class Slider {
         const thumbY = this.y + this.height/2;
         const dx = x - thumbX;
         const dy = y - thumbY;
-        return (dx * dx + dy * dy) <= 64; // 8 * 8 = 64 (thumb radius squared)
+        
+        // Use larger touch radius on touch devices
+        const touchRadius = ('ontouchstart' in window) ? 144 : 64; // 12 * 12 = 144 for touch, 8 * 8 = 64 for mouse
+        return (dx * dx + dy * dy) <= touchRadius;
+    }
+
+    isPointOnTrack(x, y) {
+        // Check if point is on the slider track (with some vertical tolerance)
+        const verticalTolerance = ('ontouchstart' in window) ? 8 : 4; // More tolerance for touch
+        return x >= this.x && x <= this.x + this.width &&
+               y >= this.y - verticalTolerance && y <= this.y + this.height + verticalTolerance;
     }
 
     handleMouseEvent(x, y, isShiftDown) {
@@ -658,7 +670,58 @@ function handleMouseDown(event) {
 
     // Then check sliders
     for (let slider of sliders) {
-        if (slider.bank == slider_bank && slider.isPointInThumb(x, y)) {
+        if (slider.bank == slider_bank && (slider.isPointInThumb(x, y) || slider.isPointOnTrack(x, y))) {
+          activeSlider = slider;  // Set the active slider for dragging
+          if (debug_verbose) {
+            console.log("pressed active slider", activeSlider);
+          }
+            const wasLearningMode = isShiftDown;
+            slider.handleMouseEvent(x, y, isShiftDown);
+            slider_hook(activeSlider.idx, slider.value);
+           
+            if (wasLearningMode) {
+                save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
+            } else {
+                save_values_to_cookie(); // Save values in normal operation
+            }
+            
+            refreshCanvas();
+            break;
+        }
+    }
+}
+
+function handleTouchStart(event) {
+    // Prevent default to avoid scrolling
+    event.preventDefault();
+    
+    const rect = event.target.getBoundingClientRect();
+    const touch = event.touches[0];
+    const x = touch.clientX - rect.left;
+    const y = touch.clientY - rect.top;
+    // For touch, we'll use a different way to detect "shift" - maybe a long press or double tap
+    const isShiftDown = false; // You could implement a different gesture for this
+
+    // Check buttons first
+    for (let button of buttons) {
+        if (button.isPointInside(x, y)) {
+            const wasLearningMode = isShiftDown;
+            button.handleMouseEvent(x, y, isShiftDown);
+            
+            if (wasLearningMode) {
+                save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
+            } else {
+                save_values_to_cookie(); // Save values in normal operation
+            }
+            
+            refreshCanvas();
+            return;
+        }
+    }
+
+    // Then check sliders
+    for (let slider of sliders) {
+        if (slider.bank == slider_bank && (slider.isPointInThumb(x, y) || slider.isPointOnTrack(x, y))) {
           activeSlider = slider;  // Set the active slider for dragging
           if (debug_verbose) {
             console.log("pressed active slider", activeSlider);
@@ -700,7 +763,38 @@ function handleMouseMove(event) {
     }
 }
 
+function handleTouchMove(event) {
+    // Prevent default to avoid scrolling
+    event.preventDefault();
+    
+    if (activeSlider) {
+        const rect = event.target.getBoundingClientRect();
+        const touch = event.touches[0];
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
+        const isShiftDown = false; // Same as touchstart
+
+        const wasLearningMode = isShiftDown;
+        activeSlider.handleMouseEvent(x, y, isShiftDown);
+        slider_hook(activeSlider.idx, activeSlider.value);
+        
+        if (wasLearningMode) {
+            save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
+        } else {
+            save_values_to_cookie(); // Save values in normal operation
+        }
+        
+        refreshCanvas();
+    }
+}
+
 function handleMouseUp() {
+    activeSlider = null;
+}
+
+function handleTouchEnd(event) {
+    // Prevent default to avoid any unwanted behavior
+    event.preventDefault();
     activeSlider = null;
 }
 
@@ -726,9 +820,11 @@ document.addEventListener('DOMContentLoaded', () => {
   myCanvas.addEventListener('mousemove', handleMouseMove);
   myCanvas.addEventListener('mouseup', handleMouseUp);
   myCanvas.addEventListener('mouseleave', handleMouseUp);
-  myCanvas.addEventListener('touchstart', handleMouseDown);
-  myCanvas.addEventListener('touchmove', handleMouseMove);
-  myCanvas.addEventListener('touchend', handleMouseUp);
+  
+  // Add touch event listeners with passive: false to allow preventDefault
+  myCanvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+  myCanvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+  myCanvas.addEventListener('touchend', handleTouchEnd, { passive: false });
   
   // Initialize sliders (moved up by 50 pixels)
   let slider_x = (150-128)/2;

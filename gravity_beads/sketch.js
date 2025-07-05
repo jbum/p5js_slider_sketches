@@ -9,7 +9,7 @@ let kDamp = 0.985;
 let kGravity = 0.001;
 let kFriction = 0.0;
 let kRestitution = 0.6;
-let kStiffness = 0.25;
+let kStiffness = 0.2;
 let last_rotation_millis = 0;
 let kRotationAngle = 0.00005;
 
