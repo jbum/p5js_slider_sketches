@@ -19,10 +19,6 @@ class Point {
   constructor(x, y) {
     this.x = x;
     this.y = y;
-    if (x < minx) minx = x;
-    if (x > maxx) maxx = x;
-    if (y < miny) miny = y;
-    if (y > maxy) maxy = y;
   }
 }
 
@@ -51,10 +47,13 @@ function intersection(x1, y1, x2, y2, x3, y3, x4, y4) {
     if (ua >= 0.0 && ua <= 1.0 && ub >= 0.0 && ub <= 1.0) {
       let xi = x1 + ua * (x2 - x1);
       let yi = y1 + ua * (y2 - y1);
-      if (xi > 0 && xi < width && yi > 0 && yi < width)
-        return new Point(xi, yi);
-      else
-        return null;
+      return new Point(xi, yi);
+      // if (xi >= 0 && xi <= width && yi >= 0 && yi <= width) {
+      //   return new Point(xi, yi);
+      // } else {
+      //   console.log("p2");
+      //   return null;
+      // }
     } else {
       // not intersecting - this works well...
       return new Point(x1, y1);
@@ -66,7 +65,8 @@ function intersection(x1, y1, x2, y2, x3, y3, x4, y4) {
 }
 
 class Poly {
-  constructor(nbrSides) {
+  constructor(idx, nbrSides) {
+    this.idx = idx;
     this.nbrSides = nbrSides;
     this.pts = [];
   }
@@ -79,14 +79,15 @@ class Poly {
     if (this.outsideBorder()) {
       fill(0.5);
       return;
-    } else
-      fill(1);
+    }
 
     let r = sin(this.nbrSides * PI * 2 / 8.0);
     let g = sin(this.nbrSides * PI * 2 / 8.0 + 2);
     let b = sin(this.nbrSides * PI * 2 / 8.0 + 4);
     fill(0.9 + r * 0.1, 0.9 + g * 0.1, 0.9 + b * 0.1);
-    stroke(0.8 + r * 0.1, 0.8 + g * 0.1, 0.8 + b * 0.1);
+    noStroke();
+    stroke(0.9 + r * 0.1, 0.9 + g * 0.1, 0.9 + b * 0.1);
+    // stroke(0.8 + r * 0.1, 0.8 + g * 0.1, 0.8 + b * 0.1);
 
     let outStr = this.nbrSides + ",";
     beginShape();
@@ -102,15 +103,7 @@ class Poly {
 
     stroke(0);
 
-    let cx = 0;
-    let cy = 0;
-    for (let i = 0; i < this.nbrSides; ++i) {
-      let pt = this.pts[i % this.nbrSides];
-      cx += tx(pt.x);
-      cy += ty(pt.y);
-    }
-    cx /= this.nbrSides;
-    cy /= this.nbrSides;
+
     for (let i = 0; i < this.nbrSides; ++i) {
       let p1 = this.pts[i % this.nbrSides];
       let p2 = this.pts[(i + 1) % this.nbrSides];
@@ -132,8 +125,9 @@ class Poly {
       let ex2 = mx2 + cos(ang2) * starEdge;
       let ey2 = my2 + sin(ang2) * starEdge;
       let ip = intersection(mx1, my1, ex1, ey1, mx2, my2, ex2, ey2);
-      if (ip == null)
+      if (ip == null) {
         continue;
+      }
       line(tx(mx1), ty(my1), tx(ip.x), ty(ip.y));
       line(tx(mx2), ty(my2), tx(ip.x), ty(ip.y));
       // Find point where these lines intersect, and draw line from mx1,my1 ix,iy   and mx2,my2,ix,iy
@@ -166,7 +160,9 @@ function setup() {
   strokeWeight(2);
   //   noLoop();
   polys = [];
-  myLoadFile(tiling_data[currentTile]);
+  console.log("current tile is ", currentTile, tiling_data[currentTile].name);
+  myLoadFile(tiling_data[currentTile].data);
+  textFont('LadylikeBB');
 }
 
 function myLoadFile(tileData) {
@@ -191,15 +187,21 @@ function myLoadFile(tileData) {
   
   for (let i = 0; i < vipts.length;) {
     let nbrSides = Math.floor(ipts[i++]);
-    let poly = new Poly(nbrSides);
+    let poly = new Poly(polys.length, nbrSides);
     for (let j = 0; j < nbrSides; j++) {
-      poly.AddDot(ipts[i + j * 2], ipts[i + j * 2 + 1]);
+      let x = ipts[i + j * 2];
+      let y = ipts[i + j * 2 + 1];
+      if (x < minx) minx = x;
+      if (x > maxx) maxx = x;
+      if (y < miny) miny = y;
+      if (y > maxy) maxy = y;
+      poly.AddDot(x, y);
     }
     i += nbrSides * 2;
     polys.push(poly);
   }
   
-  console.log("loaded " + polys.length + " polys");
+  console.log("loaded " + polys.length + " polys, and " + vipts.length + " points");
   dxs = (width - lm * 2) / (maxx - minx);
   dys = (height - tm * 2) / (maxy - miny);
 }
@@ -222,9 +224,12 @@ function slider_hook_process(slider_index, value) {
   // console.log("slider recieved ", slider_index, "value", value);
   switch (slider_index) {
     case 0:
+      let last_currentTile = currentTile;
       currentTile = int(map(value, 0, 1.01, 0, tiling_data.length));
-      myLoadFile(tiling_data[currentTile]);
-      console.log("current tile is ", currentTile);
+      if (currentTile !== last_currentTile) {
+        console.log("current tile is ", currentTile, tiling_data[currentTile].name);
+        myLoadFile(tiling_data[currentTile].data);
+      }
       break;
     case 1:
       mx = value;
@@ -281,6 +286,10 @@ function draw() {
     poly.doDraw();
   }
   pop();
+  fill(255);
+  textSize(16);
+  text(tiling_data[currentTile].name, 10, height-10);
+  
 }
 
 let small_size = 512;
