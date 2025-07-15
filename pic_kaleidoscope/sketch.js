@@ -76,7 +76,9 @@ function DrawCell(oc) {
   oc.noStroke();
 
   // draw the picture in ramayana.pic 
-  let delta_x = -(int(frameCount*kSpeed*4) % src_img.width*4)/4.0;
+  let duration = map(kSpeed,0,1,60*1000,1000);
+  let subPixels = 2; // sub-pixel movement
+  let delta_x = -(((millis()%duration)/duration) * src_img.width*subPixels)/subPixels;
   oc.push();
   oc.scale(height/src_img.height);
   oc.image(src_img, delta_x, 0);
@@ -87,8 +89,6 @@ function DrawCell(oc) {
   if (kBlurAmt >= 1/20) {
     oc.filter(BLUR, kBlurAmt);
   }
-  // glow
-  // oc.blend(0, 0, objectCellWidth, objectCellHeight, -2, 2, objectCellWidth + 3, objectCellHeight - 5, ADD);
 }
 
 function preload() {
