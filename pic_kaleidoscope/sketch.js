@@ -33,7 +33,9 @@ let kRecursionScale = 0.66;
 let kShowFrameRate = false;
 
 let rStart;
-let src_img;
+let src_img, src_images;
+
+let pic_names = ['./assets/ramayana_2.jpg', './assets/ramayana_1.jpg', './assets/gradient_1.png']
 
 const oc_padding = 4; // object cell padding -- this helps reduce edge artifacts in the center and outer rim
 
@@ -92,7 +94,11 @@ function DrawCell(oc) {
 }
 
 function preload() {
-  src_img = loadImage('./assets/ramayana_2.jpg');
+  src_images = [];
+  for (let i = 0; i < pic_names.length; ++i) {
+    src_images.push(loadImage(pic_names[i]));
+  }
+  src_img = src_images[0];
 }
 
 function setup() {
@@ -142,7 +148,7 @@ function slider_hook_process(slider_index, value) {
       kBlurAmt = map(value, 0, 1, 0, 20);
       break;
     case 2:
-      kSpeed = map(value, 0, 1, 0.001, 1.000);
+      kSpeed = map(value, 0, 1, 0.000, 1.000);
       break;
     case 3:
       v = value * value;
@@ -153,6 +159,8 @@ function slider_hook_process(slider_index, value) {
       nbrSides_M2 = int(map(v, 0, 1, 3, 12));
       break;
     case 5:
+      src_img_idx = int(map(value, 0, 1.01, 0, src_images.length));
+      src_img = src_images[src_img_idx];
       break;
     case 6:
       kRecursionLevels = int(map(value, 0, 1, 0, 6));
