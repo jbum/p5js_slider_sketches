@@ -33,7 +33,6 @@ let kMinBeadRadius = kWidth * .01;
 let kMaxBeadRadius = kWidth * .015;
 
 let kWedgeFeedback = false;
-let kUseRecursion = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
 let kStiffness = 0.1;

@@ -11,10 +11,10 @@ const sliders_cfg = [
 
 const buttons_cfg = [
     { defaultVal: 1, name: "mirror" },
-    { defaultVal: 0, name: "unused" },
+    { defaultVal: 0, name: "pan/rot" },
     { defaultVal: 0, name: "wedge" },
     { defaultVal: 0, name: "fr" },
-    { defaultVal: 0, name: "b5" },
+    { defaultVal: 0, name: "tube_r" },
     { defaultVal: 0, name: "b6" },
     { defaultVal: 0, name: "b7" },
     { defaultVal: 0, name: "b8" }

@@ -27,7 +27,6 @@ let kSpeed = 0.00005;
 
 
 let kWedgeFeedback = false;
-let kUseRecursion = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
 let kShowFrameRate = false;
@@ -189,7 +188,7 @@ function button_hook_process(index, value) {
       usesMirrors = !(value == 0);
       break;
     case 1:
-      kUseRecursion = !(value == 0);
+      // unused
       break;
     case 2:
       kWedgeFeedback = !(value == 0);

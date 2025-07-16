@@ -24,10 +24,15 @@ let usesMirrors = true;
 let kBlurAmt = 3;
 let kDarkenAmount = 164;
 let kSpeed = 0.1;
-
+let kMinPanSpeed = 0;
+let kMaxPanSpeed = .1;
+let kMinRotateSpeed = 0;
+let kMaxRotateSpeed = .001;
+let kDoRotate = false;
+let kTubeRotate = false;
+let kStartTubeRotate;
 
 let kWedgeFeedback = false;
-let kUseRecursion = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
 let kShowFrameRate = false;
@@ -35,7 +40,7 @@ let kShowFrameRate = false;
 let rStart;
 let src_img, src_images;
 
-let pic_names = ['./assets/ramayana_2.jpg', './assets/ramayana_1.jpg', './assets/gradient_1.png']
+let pic_names = ['./assets/ramayana_2.jpg', './assets/ramayana_1.jpg', './assets/ramayana_3.gif','./assets/gradient_1.png']
 
 const oc_padding = 4; // object cell padding -- this helps reduce edge artifacts in the center and outer rim
 
@@ -78,13 +83,22 @@ function DrawCell(oc) {
   oc.noStroke();
 
   // draw the picture in ramayana.pic 
-  let duration = map(kSpeed,0,1,60*1000,1000);
   let subPixels = 2; // sub-pixel movement
-  let delta_x = -(((millis()%duration)/duration) * src_img.width*subPixels)/subPixels;
   oc.push();
-  oc.scale(height/src_img.height);
-  oc.image(src_img, delta_x, 0);
-  oc.image(src_img, delta_x + src_img.width, 0);
+  if (kDoRotate) {
+    let rotate_speed = map(kSpeed,0,1,kMinRotateSpeed,kMaxRotateSpeed);
+    oc.translate(width/2, height/2);
+    oc.rotate(millis() * rotate_speed);
+    oc.scale(height/min(src_img.height, src_img.width));
+    oc.image(src_img, -src_img.width/2, -src_img.height/2);
+  } else {
+    let pan_speed = map(kSpeed,0,1,kMinPanSpeed,kMaxPanSpeed);
+    let pixels_traveled = (int(millis() * pan_speed) % (src_img.width*subPixels))/subPixels;
+    let delta_x = -pixels_traveled;
+    oc.scale(height/src_img.height);
+    oc.image(src_img, delta_x, 0);
+    oc.image(src_img, delta_x + src_img.width, 0);
+  }
   oc.pop();
 
   // this provides a blur effect
@@ -112,6 +126,7 @@ function setup() {
   objectCell = createGraphics(objectCellWidth, objectCellHeight);
   frameRate(60); // desired frame rate
 
+  kStartTubeRotate = millis();
 
   ellipseMode(RADIUS);
   setupMirrors();
@@ -148,7 +163,7 @@ function slider_hook_process(slider_index, value) {
       kBlurAmt = map(value, 0, 1, 0, 20);
       break;
     case 2:
-      kSpeed = map(value, 0, 1, 0.000, 1.000);
+      kSpeed = map(value, 0, 1, 0, 1);
       break;
     case 3:
       v = value * value;
@@ -193,13 +208,19 @@ function button_hook_process(index, value) {
       usesMirrors = !(value == 0);
       break;
     case 1:
-      kUseRecursion = !(value == 0);
+      kDoRotate = !(value == 0);
       break;
     case 2:
       kWedgeFeedback = !(value == 0);
       break;
     case 3:
       kShowFrameRate = !(value == 0);
+      break;
+    case 4:
+      kTubeRotate = !(value == 0);
+      if (kTubeRotate) {
+        kStartTubeRotate = millis();
+      }
       break;
   }
 }
@@ -280,7 +301,9 @@ function draw() {
   push();
   background(0);
   translate(width/2, height/2);
-  rotate(millis() * 0.00005);    // rotating of scope as a whole
+  if (kTubeRotate) {
+    rotate((millis() - kStartTubeRotate) * 0.00005);    // rotating of scope as a whole
+  }
   image(compositeCell, -kWidth/2, -kHeight/2);
   pop();
 

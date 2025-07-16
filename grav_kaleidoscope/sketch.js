@@ -29,7 +29,6 @@ let kRotationSpeed = 0.01;
 let kRotationAngle = 1.5707963268;
 
 let kWedgeFeedback = false;
-let kUseRecursion = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
 
