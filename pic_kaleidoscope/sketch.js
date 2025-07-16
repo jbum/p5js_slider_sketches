@@ -25,9 +25,9 @@ let kBlurAmt = 3;
 let kDarkenAmount = 164;
 let kSpeed = 0.1;
 let kMinPanSpeed = 0;
-let kMaxPanSpeed = .1;
+let kMaxPanSpeed = .05;
 let kMinRotateSpeed = 0;
-let kMaxRotateSpeed = .001;
+let kMaxRotateSpeed = .0005;
 let kDoRotate = false;
 let kTubeRotate = false;
 let kStartTubeRotate;
@@ -45,7 +45,7 @@ let pic_names = ['./assets/ramayana_2.jpg', './assets/ramayana_1.jpg', './assets
 const oc_padding = 4; // object cell padding -- this helps reduce edge artifacts in the center and outer rim
 
 function setupMirrors() {
-  console.log("setup",nbrSides);
+  // console.log("setup",nbrSides);
   mirrorRadians = 2 * PI / (nbrSides * 2);
   let pixelAngle = 1 / scopeRadius; // helps reduce visible seams by overlapping aliased edges
   adjustedMirrorRadians = mirrorRadians + pixelAngle*2;
@@ -137,6 +137,7 @@ function setup() {
 // we use a queue to manage incoming slider values, because slider_hook is not in p5.js context when called.
 let slider_queue = [];
 function slider_hook(slider_index, value) {
+  console.log("slider_hook", slider_index, value);
   slider_queue.push([slider_index, value]);
 }
 

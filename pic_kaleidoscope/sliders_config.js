@@ -1,11 +1,11 @@
 const sliders_cfg = [
-    { minVal: 0, maxVal: 1, defaultVal: 0.4, name: "sides" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.36, name: "sides" },
     { minVal: 0, maxVal: 1, defaultVal: 0.1, name: "blur amt" }, // was higher
-    { minVal: 0, maxVal: 1, defaultVal: 0.078, name: "speed" },
-    { minVal: 0, maxVal: 1, defaultVal: 0.2, name: "m1 sides" },
-    { minVal: 0, maxVal: 1, defaultVal: 0.4, name: "m2 sides" },
-    { minVal: 0, maxVal: 1, defaultVal: 0.0, name: "pic" },
-    { minVal: 0, maxVal: 1, defaultVal: 0.3, name: "feedback levels" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.14, name: "speed" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.81, name: "m1 sides" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.21, name: "m2 sides" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.32, name: "pic" },
+    { minVal: 0, maxVal: 1, defaultVal: 0.28, name: "feedback levels" },
     { minVal: 0, maxVal: 1, defaultVal: 0.75, name: "recurse scale" },
 ];
 
