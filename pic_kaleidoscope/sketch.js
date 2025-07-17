@@ -31,6 +31,7 @@ let kMaxRotateSpeed = .0005;
 let kDoRotate = false;
 let kTubeRotate = false;
 let kStartTubeRotate;
+let kBisect = false;
 
 let kWedgeFeedback = false;
 let kRecursionLevels = 0;
@@ -223,6 +224,9 @@ function button_hook_process(index, value) {
         kStartTubeRotate = millis();
       }
       break;
+    case 5:
+      kBisect = !(value == 0);
+      break;
   }
 }
 
@@ -277,8 +281,21 @@ function draw() {
     for (let i = 0; i < kRecursionLevels; ++i) {
       nbrSides = kRecursionLevels > 1 && i == 0? nbrSides_M2 : save_nbrSides;
       setupMirrors();
-      objectCell.image(compositeCell, objectCell.width * 3 / 4 - kWidth * kRecursionScale / 2, objectCell.height / 2 - kHeight * kRecursionScale / 2,
-        kWidth * kRecursionScale, kHeight * kRecursionScale);
+      let cx = objectCell.width/2;
+      let cy = objectCell.height/2;
+      let dx = cx + objectCell.width / 4;
+      let dy = cy;
+      let image_width = kWidth * kRecursionScale;
+      let image_height = kHeight * kRecursionScale;
+      if (kBisect) {
+        let center_rad = dx - cx;
+        dx = cx + cos(-mirrorRadians/2)*center_rad;
+        dy = cy + sin(-mirrorRadians/2)*center_rad;
+      }
+      objectCell.image(compositeCell, 
+        dx - image_width / 2, 
+        dy - image_height / 2,
+        image_width, image_height);
       applyMirrors();
     }
   } else {

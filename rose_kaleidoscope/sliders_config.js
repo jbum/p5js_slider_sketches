@@ -8,7 +8,7 @@ const sliders_cfg = [
     { minVal: 0, maxVal: 1, defaultVal: 0.0, name: "feedback levels" },
     { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "phase" },
 
-    { minVal: 0, maxVal: 1, defaultVal: 0.75, name: "recurse scale" },
+    { minVal: 0, maxVal: 1, defaultVal: 1.0, name: "recurse scale" },
     { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "unused" },
 ];
 
@@ -17,8 +17,8 @@ const buttons_cfg = [
     { defaultVal: 0, name: "unused" },
     { defaultVal: 0, name: "wedge" },
     { defaultVal: 0, name: "fr" },
-    { defaultVal: 0, name: "b5" },
-    { defaultVal: 0, name: "b6" },
+    { defaultVal: 1, name: "tube_r" },
+    { defaultVal: 1, name: "bisect" },
     { defaultVal: 0, name: "b7" },
     { defaultVal: 0, name: "sbank", states:2, set_slider_bank: true }
 ]; 

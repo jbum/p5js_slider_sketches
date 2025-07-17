@@ -39,6 +39,7 @@ let kStiffness = 0.1;
 let kVisualRotate = true;
 let kShowFrameRate = false;
 let kShowColorFeedback = false;
+let kBisect = false;
 
 function get_modified_color(clr, desired_lum) {
   // convert clr to hsl, set l to desired_lum, convert back to rgb
@@ -492,6 +493,9 @@ function button_hook_process(index, value) {
     case 4:
       kShowColorFeedback = !(value == 0);
       break;
+    case 5:
+      kBisect = !(value == 0);
+      break;
   }
 }
 
@@ -543,8 +547,21 @@ function draw() {
     applyMirrors(); // copy the wedges from the object cell to the composite Cell
     // apply feedback passes, if any
     for (let i = 0; i < kRecursionLevels; ++i) {
-      objectCell.image(compositeCell, objectCell.width * 3 / 4 - kWidth * kRecursionScale / 2, objectCell.height / 2 - kHeight * kRecursionScale / 2,
-        kWidth * kRecursionScale, kHeight * kRecursionScale);
+      let cx = objectCell.width/2;
+      let cy = objectCell.height/2;
+      let dx = cx + objectCell.width / 4;
+      let dy = cy;
+      let image_width = kWidth * kRecursionScale;
+      let image_height = kHeight * kRecursionScale;
+      if (kBisect) {
+        let center_rad = dx - cx;
+        dx = cx + cos(-mirrorRadians/2)*center_rad;
+        dy = cy + sin(-mirrorRadians/2)*center_rad;
+      }
+      objectCell.image(compositeCell, 
+        dx - image_width / 2, 
+        dy - image_height / 2,
+        image_width, image_height);
       applyMirrors();
     }
   } else {

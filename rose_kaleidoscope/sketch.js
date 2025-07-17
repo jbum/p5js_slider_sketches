@@ -30,7 +30,9 @@ let kWedgeFeedback = false;
 let kRecursionLevels = 0;
 let kRecursionScale = 0.66;
 let kShowFrameRate = false;
-
+let kTubeRotate = false;
+let kStartTubeRotate;
+let kBisect = false;
 let rStart;
 const oc_padding = 4; // object cell padding -- this helps reduce edge artifacts in the center and outer rim
 
@@ -112,7 +114,7 @@ function setup() {
   ellipseMode(RADIUS);
   SetupMirror();
   SetupCell();
-
+  kStartTubeRotate = millis();
 }
 
 // we use a queue to manage incoming slider values, because slider_hook is not in p5.js context when called.
@@ -196,6 +198,15 @@ function button_hook_process(index, value) {
     case 3:
       kShowFrameRate = !(value == 0);
       break;
+    case 4:
+      kTubeRotate = !(value == 0);
+      if (kTubeRotate) {
+        kStartTubeRotate = millis();
+      }
+      break;
+    case 5:
+      kBisect = !(value == 0);
+      break;
   }
 }
 
@@ -245,8 +256,21 @@ function draw() {
     applyMirrors(); // copy the wedges from the object cell to the composite Cell
     // apply feedback passes, if any
     for (let i = 0; i < kRecursionLevels; ++i) {
-      objectCell.image(compositeCell, objectCell.width * 3 / 4 - kWidth * kRecursionScale / 2, objectCell.height / 2 - kHeight * kRecursionScale / 2,
-        kWidth * kRecursionScale, kHeight * kRecursionScale);
+      let cx = objectCell.width/2;
+      let cy = objectCell.height/2;
+      let dx = cx + objectCell.width / 4;
+      let dy = cy;
+      let image_width = kWidth * kRecursionScale;
+      let image_height = kHeight * kRecursionScale;
+      if (kBisect) {
+        let center_rad = dx - cx;
+        dx = cx + cos(-mirrorRadians/2)*center_rad;
+        dy = cy + sin(-mirrorRadians/2)*center_rad;
+      }
+      objectCell.image(compositeCell, 
+        dx - image_width / 2, 
+        dy - image_height / 2,
+        image_width, image_height);
       applyMirrors();
     }
   } else {
@@ -270,7 +294,9 @@ function draw() {
   push();
   background(0);
   translate(width/2, height/2);
-  rotate(millis() * 0.00005);    // rotating of scope as a whole
+  if (kTubeRotate) {
+    rotate((millis() - kStartTubeRotate) * 0.00005);    // rotating of scope as a whole
+  }
   image(compositeCell, -kWidth/2, -kHeight/2);
   pop();
 
