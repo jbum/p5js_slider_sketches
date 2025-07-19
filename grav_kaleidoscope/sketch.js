@@ -544,19 +544,14 @@ function toggle_sketch_size() {
 }
 
 function keyPressed() {
+  // Return early if the preset editor is active
+  const presetEditor = document.getElementById('preset-editor');
+  if (presetEditor && presetEditor.style.display !== 'none' && presetEditor.style.display !== '') {
+    return;
+  }
   if (key === 'x' || key === 'X') { 
     toggle_slider_visibility();
   } else if (key === 's' || key === 'S') {
     toggle_sketch_size();
-  } else if (key === 'm') {
-    usesMirrors = !usesMirrors;
-    console.log("MIRRORS " + (usesMirrors ? "ON" : "OFF"));
-  } else if (key >= '2' && key <= '9') {
-    nbrSides = key - '0';
-    setup_mirror();
-  } else if (key >= 'a' && key <= 'l') {
-    nbrSides = 10 + key.charCodeAt(0) - 'a'.charCodeAt(0);
-    console.log("nbr sides = ", nbrSides)
-    setup_mirror();
   }
 }

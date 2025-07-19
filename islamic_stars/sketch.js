@@ -301,6 +301,11 @@ function toggle_sketch_size() {
 }
 
 function keyPressed() {
+  // Return early if the preset editor is active
+  const presetEditor = document.getElementById('preset-editor');
+  if (presetEditor && presetEditor.style.display !== 'none' && presetEditor.style.display !== '') {
+    return;
+  }
   if (key === 'x' || key === 'X') { 
     toggle_slider_visibility();
   } else if (key === 's' || key === 'S') {

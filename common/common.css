@@ -77,3 +77,148 @@ div.sliders-canvas-container {
 #preset-list {
   margin-top: 1rem;
 }
+
+/* Preset Editor Modal */
+.preset-editor-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: none;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.preset-editor-content {
+  background-color: #1a1a1a;
+  border: 1px solid #333333;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.preset-editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid #333333;
+}
+
+.preset-editor-header h3 {
+  margin: 0;
+  color: #aaaaaa;
+  font-family: LadylikeBB, helvetica, sans-serif;
+}
+
+.preset-editor-close {
+  background: none;
+  border: none;
+  color: #aaaaaa;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+
+.preset-editor-close:hover {
+  background-color: #333333;
+}
+
+.preset-editor-body {
+  flex: 1;
+  padding: 1rem;
+  overflow: hidden;
+}
+
+.preset-list-container {
+  max-height: 300px;
+  overflow-y: auto;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  background-color: #0a0a0a;
+}
+
+.preset-item {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem;
+  border-bottom: 1px solid #222222;
+  cursor: move;
+  user-select: none;
+}
+
+.preset-item:last-child {
+  border-bottom: none;
+}
+
+.preset-item:hover {
+  background-color: #222222;
+}
+
+.preset-item.selected {
+  background-color: #333333;
+}
+
+.preset-checkbox {
+  margin-right: 0.5rem;
+  cursor: pointer;
+}
+
+.preset-name-input {
+  flex: 0.75;
+  background-color: transparent;
+  border: none;
+  color: #aaaaaa;
+  font-family: LadylikeBB, helvetica, sans-serif;
+  font-size: 14px;
+  padding: 0.25rem;
+  border-radius: 2px;
+}
+
+.preset-name-input:focus {
+  outline: none;
+  background-color: #333333;
+}
+
+.preset-editor-actions {
+  display: flex;
+  gap: 0.5rem;
+  padding: 1rem;
+  border-top: 1px solid #333333;
+}
+
+.preset-action-btn {
+  background-color: #333333;
+  border: 1px solid #555555;
+  color: #aaaaaa;
+  padding: 0.5rem 1rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-family: LadylikeBB, helvetica, sans-serif;
+  font-size: 16px;
+  min-width: 40px;
+}
+
+.preset-action-btn:hover {
+  background-color: #444444;
+  border-color: #666666;
+}
+
+.preset-action-btn:disabled {
+  background-color: #222222;
+  border-color: #333333;
+  color: #666666;
+  cursor: not-allowed;
+}

@@ -331,14 +331,6 @@ function draw() {
   // noLoop();
 }
 
-function keyPressed() {
-  // Handle keyboard input (useful for testing)
-  if (key === 'x' || key === 'X') {
-    toggle_slider_visibility();
-  } else if (key === 's' || key === 'S') {
-    toggle_sketch_size();
-  }
-}
 
 // Port of plates.py to JavaScript for p5.js
 // Original code was for Processing/Python mode
@@ -901,4 +893,17 @@ function makeColorSpiral() {
   graf.image(circMask, 0, 0);
   graf.blendMode(BLEND);
   return graf;
+}
+
+function keyPressed() {
+  // Return early if the preset editor is active
+  const presetEditor = document.getElementById('preset-editor');
+  if (presetEditor && presetEditor.style.display !== 'none' && presetEditor.style.display !== '') {
+    return;
+  }
+  if (key === 'x' || key === 'X') { 
+    toggle_slider_visibility();
+  } else if (key === 's' || key === 'S') {
+    toggle_sketch_size();
+  }
 }

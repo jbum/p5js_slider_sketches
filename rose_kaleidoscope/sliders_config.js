@@ -21,4 +21,9 @@ const buttons_cfg = [
     { defaultVal: 1, name: "bisect" },
     { defaultVal: 0, name: "b7" },
     { defaultVal: 0, name: "sbank", states:2, set_slider_bank: true }
+];
+
+// these are the presets that are available in the factory
+const factory_presets = [
+    {'name': 'default', 'slider_values': [0.4, 0.464, 0.273, 0.257, 0.765, 0.078, 0.0, 0.5, 1.0, 0.5], 'button_values': [1, 0, 0, 0, 1, 1, 0, 0]}
 ]; 
