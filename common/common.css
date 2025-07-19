@@ -36,3 +36,44 @@ div.sliders-canvas-container {
   background-color: #000000;
   margin: auto 1rem;
 }
+
+/* Preset selector styling */
+.preset-dropdown {
+  background-color: #1a1a1a;
+  color: #aaaaaa;
+  border: 1px solid #333333;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-family: LadylikeBB, helvetica, sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s ease;
+  margin-top: 1rem;
+  width: 100%;
+  max-width: 200px;
+}
+
+.preset-dropdown:hover {
+  border-color: #555555;
+}
+
+.preset-dropdown:focus {
+  border-color: #777777;
+  box-shadow: 0 0 0 2px rgba(119, 119, 119, 0.2);
+}
+
+.preset-dropdown option {
+  background-color: #1a1a1a;
+  color: #aaaaaa;
+  padding: 8px;
+}
+
+.preset-dropdown option:disabled {
+  color: #666666;
+  font-style: italic;
+}
+
+#preset-list {
+  margin-top: 1rem;
+}

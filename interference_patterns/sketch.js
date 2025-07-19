@@ -8,6 +8,7 @@
 const NBR_SHAPES = 9;
 const NBR_GELS = 4;
 const SLOT_WIDTH = 7;
+const NBR_MODES = 5;
 
 const msPerFrame = 1000 / 30.0;
 
@@ -31,16 +32,6 @@ let blurShader;
 let use_shaders = false; // not successfully ported yet (having issue with calls to setUniform)
 let use_shader_vars = false;
 // Presets from the original code
-const goodPresets = [
-  [7, 7, 3, "tos tricorder"], // reference https://www.thewandcompany.com/tricorder-update-8/
-  [8, 8, 3, "tos communicator"], // reference https://www.thewandcompany.com/tricorder-update-8/
-  [0, 0, 0, "rowe/ami L-200 jukebox"], // reference footage https://www.youtube.com/watch?v=7QtO-hxgRfU and https://www.youtube.com/watch?v=QFlflxfe1RI
-  [1, 2, 1, "expanding spiral"],
-  [2, 2, 0, "starburst"],
-  [3, 3, 1, "banded star"],
-  [1, 3, 1, "slow expand"],
-  [2, 0, 0, "spoke/rowe"],
-];
 
 let displaceColorsSrc = `
 precision highp float;
@@ -143,36 +134,30 @@ function slider_hook_process(slider_index, value) {
   // values[slider_index] = value;
   switch (slider_index) {
   case 0:
-    mode = floor(map(value, 0, 1.01, 0, 5));
+    mode = int(value);
     break;
   case 1:
     rpm = map(value, 0, 1, 0, 3);
     break;
   case 2:
-    curGraphic_A_idx = value; // floor(map(value, 0, 1.01, 0, NBR_SHAPES));
+    curGraphic_A_idx = int(value);
     updateDiscs();
     break;
   case 3:
-    curGraphic_B_idx = value; // floor(map(value, 0, 1.01, 0, NBR_SHAPES));
+    curGraphic_B_idx = int(value);
     updateDiscs();
     break;
   case 4:
-    curColorGel_idx = value; // floor(map(value, 0, 1.01, 0, NBR_GELS));
+    curColorGel_idx = int(value);
     console.log("color gel idx", curColorGel_idx, "value", value);
     updateDiscs();
     break;
-  case 5:
-    let preset_idx = floor(map(value, 0, 1.01, 0, goodPresets.length));
-    [curGraphic_A_idx, curGraphic_B_idx, curColorGel_idx] = goodPresets[preset_idx];
-    const label = `${goodPresets[preset_idx][3]} (${curGraphic_A_idx}/${curGraphic_B_idx}/${curColorGel_idx})`;
-    document.getElementById('sketch-label').textContent = label;
-    updateDiscs();
+  case 5:    // unused
     break;
   case 6:
-    kBlurAmt = map(value, 0, 1, 0, 10);
+    kBlurAmt = value;
     break;
-  case 7:
-      // unused
+  case 7:      // unused
     break;
   }
 }

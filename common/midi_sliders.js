@@ -261,6 +261,9 @@ class Slider {
 
     setValue(value) {
         this.value = value;
+        if (this.s_config.type === 'int') {
+          this.value = Math.floor(this.value);
+        }
         this.lastAdjusted = new Date();
     }
 
@@ -693,9 +696,10 @@ function handleMouseDown(event) {
           if (debug_verbose) {
             console.log("pressed active slider", activeSlider);
           }
-            const wasLearningMode = isShiftDown;
-            slider.handleMouseEvent(x, y, isShiftDown);
-            slider_hook(activeSlider.idx, slider.value);
+          const wasLearningMode = isShiftDown;
+          slider.handleMouseEvent(x, y, isShiftDown);
+          slider.setValue(slider.value); // does int conversion if necessary
+          slider_hook(activeSlider.idx, slider.value);
            
             if (wasLearningMode) {
                 save_midi_mappings_to_cookie(); // Save MIDI mappings if in learning mode
