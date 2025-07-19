@@ -1,9 +1,9 @@
 const sliders_cfg = [
     { minVal: 0, maxVal: 1, defaultVal: 0.00, name: "display mode" },
     { minVal: 0, maxVal: 1, defaultVal: 0.43, name: "rotation speed" },
-    { minVal: 0, maxVal: 1, defaultVal: 1.0, name: "A graphic" },
-    { minVal: 0, maxVal: 1, defaultVal: 1.0, name: "B graphic" },
-    { minVal: 0, maxVal: 1, defaultVal: 1.0, name: "color gel" },
+    { minVal: 0, maxVal: NBR_SHAPES-1, type: 'int', defaultVal: 8, name: "A graphic" },
+    { minVal: 0, maxVal: NBR_SHAPES-1, type: 'int', defaultVal: 8, name: "B graphic" },
+    { minVal: 0, maxVal: NBR_GELS-1, type: 'int', defaultVal: 3, name: "color gel" },
     { minVal: 0, maxVal: 1, defaultVal: 0.0, name: "preset" },
     { minVal: 0, maxVal: 1, defaultVal: 0.0, name: "blur" },
     { minVal: 0, maxVal: 1, defaultVal: 0.0, name: "unused" }

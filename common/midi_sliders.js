@@ -307,8 +307,19 @@ class Slider {
       if (debug_verbose) {
         console.log("x", x, "this.x", this.x, "this.x + this.width", this.x + this.width);
       }
-      let newValue = myMapConstrain(x, this.x, this.x + this.width, this.s_config.minVal, this.s_config.maxVal);
-      this.setValue(newValue);
+      if (x > this.x + this.width) {
+        x = this.x + this.width;
+      } else if (x < this.x) {
+        x = this.x;
+      }
+      let v;
+      if (this.s_config.type === 'int') {
+        // this evenly distributes the values between min and max
+        v = Math.floor(myMapConstrain(x, this.x, this.x + this.width+1, this.s_config.minVal, this.s_config.maxVal+1));
+      } else {
+        v = myMapConstrain(x, this.x, this.x + this.width, this.s_config.minVal, this.s_config.maxVal);
+      }
+      this.setValue(v);
     }
 
     setControlNumber(controlNumber) {
@@ -552,7 +563,14 @@ function onMIDIMessage(event) {
       }
       if (targetSlider) {
         // convert from MIDI value to slider value
-        let v = myMapConstrain(data2, 0, 127, targetSlider.s_config.minVal, targetSlider.s_config.maxVal);
+        // If the slider config has a 'type' field set to 'int', round the value to the nearest integer
+        let v;
+        if (targetSlider.s_config.type === 'int') {
+          // this evenly distributes the values between min and max
+          v = Math.floor(myMapConstrain(data2, 0, 128, targetSlider.s_config.minVal, targetSlider.s_config.maxVal+1));
+        } else {
+          v = myMapConstrain(data2, 0, 127, targetSlider.s_config.minVal, targetSlider.s_config.maxVal);
+        }
         targetSlider.setValue(v);
         slider_hook(targetSlider.idx, v);
         save_values_to_cookie(); // Only save values during normal operation

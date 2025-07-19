@@ -149,15 +149,15 @@ function slider_hook_process(slider_index, value) {
     rpm = map(value, 0, 1, 0, 3);
     break;
   case 2:
-    curGraphic_A_idx = floor(map(value, 0, 1.01, 0, NBR_SHAPES));
+    curGraphic_A_idx = value; // floor(map(value, 0, 1.01, 0, NBR_SHAPES));
     updateDiscs();
     break;
   case 3:
-    curGraphic_B_idx = floor(map(value, 0, 1.01, 0, NBR_SHAPES));
+    curGraphic_B_idx = value; // floor(map(value, 0, 1.01, 0, NBR_SHAPES));
     updateDiscs();
     break;
   case 4:
-    curColorGel_idx = floor(map(value, 0, 1.01, 0, NBR_GELS));
+    curColorGel_idx = value; // floor(map(value, 0, 1.01, 0, NBR_GELS));
     console.log("color gel idx", curColorGel_idx, "value", value);
     updateDiscs();
     break;
