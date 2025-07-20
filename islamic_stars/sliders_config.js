@@ -22,5 +22,5 @@ const buttons_cfg = [
 
 // these are the presets that are available in the factory
 const factory_presets = [
-    {'name': 'default', 'slider_values': [0.5, 0.125, 0.0, 0.5, 0.5, 0.5, 0.5, 0.5], 'button_values': [0, 0, 0, 0, 0, 0, 0, 0]}
+    {'name': 'default', 'slider_values': [0, 0.125, 0.0, 0.5, 0.5, 0.5, 0.5, 0.5], 'button_values': [0, 0, 0, 0, 0, 0, 0, 0]}
 ]; 

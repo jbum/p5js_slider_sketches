@@ -23,6 +23,6 @@ const buttons_cfg = [
 // these are the presets that are available in the factory
 const factory_presets = 
 
-[{"name":"default","slider_values":[0.78,0.13,0.21,0,0.87,0.46,0.20,0.99],"button_values":[1,0,0,0,0,1,0,0]},
- {"name":"Physical projector","slider_values":[0.56,0.13,0.32,0.20,0.50,0.46,0.61,0.65],"button_values":[1,1,0,0,0,1,0,0]},
- {"name":"Ornate","slider_values":[0.79,0.13,0.21,0,0.87,0.46,0.75,0.68],"button_values":[1,0,0,0,0,1,0,0]}];
+[{"name":"default","slider_values":[8,0.13,0.21,0,0.87,1,1,0.99],"button_values":[1,0,0,0,0,1,0,0]},
+ {"name":"Physical projector","slider_values":[8,0.13,0.32,0.20,0.50,1,1,0.65],"button_values":[1,1,0,0,0,1,0,0]},
+ {"name":"Ornate","slider_values":[8,0.13,0.21,0,0.87,2,4,0.68],"button_values":[1,0,0,0,0,1,0,0]}];
