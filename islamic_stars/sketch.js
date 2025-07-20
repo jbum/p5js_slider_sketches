@@ -225,7 +225,7 @@ function slider_hook_process(slider_index, value) {
   switch (slider_index) {
     case 0:
       let last_currentTile = currentTile;
-      currentTile = int(map(value, 0, 1.01, 0, tiling_data.length));
+      currentTile = constrain(int(value),0,tiling_data.length-1);
       if (currentTile !== last_currentTile) {
         console.log("current tile is ", currentTile, tiling_data[currentTile].name);
         myLoadFile(tiling_data[currentTile].data);

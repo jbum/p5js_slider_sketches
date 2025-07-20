@@ -265,6 +265,7 @@ class Slider {
           this.value = Math.floor(this.value);
         }
         this.lastAdjusted = new Date();
+        console.log("slider", this.s_config.name, "value", this.value);
     }
 
     timeSinceAdjusted() {

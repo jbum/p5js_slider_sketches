@@ -1,5 +1,5 @@
 const sliders_cfg = [
-    { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Tiling Selector" },
+    { minVal: 0, maxVal: tiling_data.length-1, type: 'int', defaultVal: 0, name: "Tiling Selector" },
     { minVal: 0, maxVal: 1, defaultVal: 0.125, name: "mx" },
     { minVal: 0, maxVal: 1, defaultVal: 0.0, name: "my" },
     { minVal: 0, maxVal: 1, defaultVal: 0.5, name: "Slider 4" },

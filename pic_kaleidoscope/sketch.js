@@ -4,6 +4,8 @@ let kWidth = 800;             // width of graphics
 let kHeight = 800;            // height of graphics
 
 let nbrSides = 7;
+let kMinSides = 3;
+let kMaxSides = 13;
 let nbrSides_M1 = 3;
 let nbrSides_M2 = 5;
 
@@ -41,7 +43,7 @@ let kShowFrameRate = false;
 let rStart;
 let src_img, src_images;
 
-let pic_names = ['./assets/ramayana_2.jpg', './assets/ramayana_1.jpg', './assets/ramayana_3.gif','./assets/gradient_1.png']
+const pic_names = ['./assets/ramayana_2.jpg', './assets/ramayana_1.jpg', './assets/ramayana_3.gif','./assets/gradient_1.png']
 
 const oc_padding = 4; // object cell padding -- this helps reduce edge artifacts in the center and outer rim
 
@@ -156,8 +158,7 @@ function slider_hook_process(slider_index, value) {
   let v;
   switch (slider_index) {
     case 0:
-      v = value * value;
-      nbrSides = int(map(v, 0, 1, 3, 12));
+      nbrSides = constrain(int(value), kMinSides, kMaxSides);
       console.log("nbr sides = ", nbrSides)
       setupMirrors();
       break;
@@ -176,11 +177,11 @@ function slider_hook_process(slider_index, value) {
       nbrSides_M2 = int(map(v, 0, 1, 3, 12));
       break;
     case 5:
-      src_img_idx = int(map(value, 0, 1.01, 0, src_images.length));
+      src_img_idx = constrain(int(value), 0, src_images.length-1);
       src_img = src_images[src_img_idx];
       break;
     case 6:
-      kRecursionLevels = int(map(value, 0, 1, 0, 6));
+      kRecursionLevels = int(value);
       break;
     case 7:
       kRecursionScale = map(value, 0, 1, 0.1, 0.9);

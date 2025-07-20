@@ -8,6 +8,8 @@ let kWidth = 800;             // width of graphics
 let kHeight = 800;            // height of graphics
 
 let nbrSides = 7;
+let kMinSides = 3;
+let kMaxSides = 13;
 
 let scopeRadius = Math.floor(.4*kWidth)
 let scopeMargin = 8;
@@ -430,8 +432,7 @@ function empty_slider_queue() {
 function slider_hook_process(slider_index, value) {
   switch (slider_index) {
     case 0:
-      let v = value * value;
-      nbrSides = int(map(v, 0, 1, 3, 23));
+      nbrSides = constrain(int(value),kMinSides,kMaxSides);
       console.log("nbr sides = ", nbrSides)
       setup_mirror();
       break;
@@ -445,7 +446,7 @@ function slider_hook_process(slider_index, value) {
       kRotationAngle = map(value, 0, 1, -PI,PI);
       break;
     case 4:
-      kRecursionLevels = int(map(value, 0, 1, 0, 6));
+      kRecursionLevels = int(value);
       break;
     case 5:
       kRecursionScale = map(value, 0, 1, 0.1, 0.9);
